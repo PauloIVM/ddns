@@ -1,49 +1,56 @@
-const WebSocket = require("ws");
-const os = require("os");
+const io = require("socket.io-client");
 const http = require("http");
-const { setInterval } = require("timers");
+const express = require("express");
 
-const server = http.createServer(async (req, res) => {
-    res.writeHead(200, { "Content-Type": "text/html" });
-    res.end("Ok.. its working..");
-});
-server.listen(3006, () => {
-    console.log("Server listening on port 3006");
-});
+const SERVER_URL = "http://localhost:3000";
+const LOCAL_PORT = 4000;
 
-let currentIP = getLocalIP();
-const ws = new WebSocket("ws://localhost:3005");
+const socket = io(SERVER_URL);
 
-function checkIPChange() {
-    const newIP = getLocalIP();
-    if (newIP !== currentIP) {
-        console.log("IP changed:", newIP);
-        currentIP = newIP;
-        // ws.send(currentIP);
-        ws.send("localhost:3006");
-    }
-}
-
-ws.on("open", () => {
-    console.log("Connected to cloud server");
-    console.log(currentIP);
-    // ws.send(currentIP);
-    ws.send("localhost:3006");
-    setInterval(checkIPChange, 4000);
+socket.on("connect", () => {
+    console.log("Conectado ao servidor cloud");
 });
 
-ws.on("error", (error) => {
-    console.error("WebSocket error:", error);
+socket.on("disconnect", () => {
+    console.log("Desconectado do servidor cloud");
 });
 
-function getLocalIP() {
-    const interfaces = os.networkInterfaces();
-    for (let interfaceName in interfaces) {
-        for (let iface of interfaces[interfaceName]) {
-            if (iface.family === "IPv4" && !iface.internal) {
-                return iface.address;
-            }
-        }
-    }
-    return null;
-}
+socket.on("httpRequest", (requestOptions, body, callback) => {
+    const options = {
+        hostname: "localhost",
+        port: LOCAL_PORT,
+        path: requestOptions.url,
+        method: requestOptions.method,
+        headers: requestOptions.headers
+    };
+
+    const req = http.request(options, (res) => {
+        let responseBody = [];
+        res.on("data", (chunk) => {
+            responseBody.push(chunk);
+        }).on("end", () => {
+            responseBody = Buffer.concat(responseBody).toString();
+            const responseOptions = {
+                statusCode: res.statusCode,
+                headers: res.headers
+            };
+            callback(responseOptions, responseBody);
+        });
+    });
+
+    req.on("error", (e) => {
+        console.error(`Problema com a requisição: ${e.message}`);
+    });
+
+    if (body) req.write(body);
+    req.end();
+});
+
+// TODO: Implementar servidor local... talvez funcione mesmo...
+const PORT = 4000;
+const app = express();
+app.use("/", (req, res) => { res.json({ message: "hello" })})
+const server = http.createServer(app);
+server.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
+});

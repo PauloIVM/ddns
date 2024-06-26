@@ -6,7 +6,8 @@
   "author": "Paulo Marinho <pakas_vieira_95@hotmail.com>",
   "license": "MIT",
   "dependencies": {
-    "http-proxy": "^1.18.1",
-    "ws": "^8.17.1"
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5"
   }
 }
