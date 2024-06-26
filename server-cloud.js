@@ -1,31 +1,63 @@
 const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
-
-// TODO: Acho q n preciso de usar o express aqui...
-
-const PORT = 3000;
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-let clients = {};
+// TODO: Mover isso para "exemples"
+const PORT = 3000;
+const HOSTS = {
+    [`server-a.localhost`]: { socket: null },
+    [`server-b.localhost`]: { socket: null },
+    [`server-c.localhost`]: { socket: null },
+};
+
+io.use((socket, next) => {
+    // TODO: Usar sockets seguros (TLS/SSL) para criptografar a comunicação entre os servidores
+    if (socket.handshake.query.token === "my_super_token") {
+        console.log(`Socket ${socket.id} authenticated`);
+        next();
+    } else {
+        console.log(`Failed to authenticate ${socket.id}`);
+        next(new Error('Authentication error'));
+    }
+});
 
 io.on("connection", (socket) => {
-    console.log(`Cliente conectado: ${socket.id}`);
-    clients[socket.id] = socket;
+    socket.on("listen-host", (host) => {
+        if (!HOSTS[host.toString()]) return;
+        if (HOSTS[host.toString()].socket) {
+            socket.disconnect();
+            console.log(`Host already has a connection, failed to: ${socket.id}`);
+            return;    
+        }
+        console.log(`Cliente conectado: ${socket.id}`);
+        HOSTS[host.toString()] = { socket }
+    });
     socket.on("disconnect", () => {
         console.log(`Cliente desconectado: ${socket.id}`);
-        delete clients[socket.id];
+        Object.keys(HOSTS).forEach((hostname) => {
+            if (HOSTS[hostname]?.socket?.id !== socket.id) return;
+            HOSTS[hostname] = { socket: null };
+        });
     });
 });
 
 app.use(async (req, res) => {
-    let targetSocketId = Object.keys(clients)[0];
-    if (!targetSocketId) await retry();
-    targetSocketId = Object.keys(clients)[0];
-    if (!targetSocketId) res.status(502).send("No clients available");
-    const targetSocket = clients[targetSocketId];
+    const targetHost = req.hostname;
+    if (!HOSTS[targetHost]) {
+        res.status(502).send("No such HOST configured");
+        return;
+    }
+    let targetSocket = HOSTS[targetHost]?.socket;
+    console.log("target host: ", targetHost + req.path);
+    if (!targetSocket) await retry(targetHost);
+    targetSocket = HOSTS[targetHost]?.socket;
+    if (!targetSocket) {
+        res.status(502).send("No such HOST available");
+        return;
+    }
     const requestOptions = { method: req.method, headers: req.headers, url: req.url };
     let body = [];
     req.on("data", (chunk) => {
@@ -43,13 +75,12 @@ server.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
 });
 
-async function retry(count = 60) {
-    const targetIP = Object.keys(clients)[0];
-    if (targetIP) return;
+async function retry(targetHost, count = 60) {
+    if (HOSTS[targetHost]?.socket) return;
     if (count === 1) return;
     await sleep(1000);
     console.log(`Retries count: ${count}`);
-    await retry(count - 1); 
+    await retry(targetHost, count - 1); 
 }
 
 async function sleep(ms) {
