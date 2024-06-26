@@ -46,10 +46,12 @@ socket.on("httpRequest", (requestOptions, body, callback) => {
     req.end();
 });
 
-// TODO: Implementar servidor local... talvez funcione mesmo...
+// TODO: Encerrar o server-local, fazer diversas requests com um query.name distinto, subir
+//       novamente o server-local e ver se vai responder certinho pra todo mundo, sem nenhum
+//       problema de concorrênia.
 const PORT = 4000;
 const app = express();
-app.use("/", (req, res) => { res.json({ message: "hello" })})
+app.use("/", (req, res) => res.json({ message: `hello ${req.query["name"]}` }));
 const server = http.createServer(app);
 server.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);

@@ -20,8 +20,10 @@ io.on("connection", (socket) => {
     });
 });
 
-app.use((req, res) => {
-    const targetSocketId = Object.keys(clients)[0];
+app.use(async (req, res) => {
+    let targetSocketId = Object.keys(clients)[0];
+    if (!targetSocketId) await retry();
+    targetSocketId = Object.keys(clients)[0];
     if (!targetSocketId) res.status(502).send("No clients available");
     const targetSocket = clients[targetSocketId];
     const requestOptions = { method: req.method, headers: req.headers, url: req.url };
@@ -40,3 +42,18 @@ app.use((req, res) => {
 server.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
 });
+
+async function retry(count = 60) {
+    const targetIP = Object.keys(clients)[0];
+    if (targetIP) return;
+    if (count === 1) return;
+    await sleep(1000);
+    console.log(`Retries count: ${count}`);
+    await retry(count - 1); 
+}
+
+async function sleep(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
