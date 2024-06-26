@@ -1,13 +1,14 @@
-const io = require("socket.io-client");
-const http = require("http");
-const express = require("express");
+import io from "socket.io-client";
+import express from "express";
+import http from "http";
 
 // TODO: Mover isso para "exemples"
 const SERVER_URL = "http://localhost:3000";
 const LOCAL_PORT = 4000;
+const TOKEN = "my_super_token";
 
 const socket = io(SERVER_URL, {
-    query: { token: "my_super_token" }
+    query: { token: TOKEN }
 });
 
 socket.on("connect", () => {

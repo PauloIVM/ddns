@@ -2,6 +2,7 @@
   "name": "ddns",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "repository": "git@github.com:PauloIVM/ddns.git",
   "author": "Paulo Marinho <pakas_vieira_95@hotmail.com>",
   "license": "MIT",

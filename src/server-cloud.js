@@ -1,12 +1,14 @@
-const express = require("express");
-const http = require("http");
-const socketIo = require("socket.io");
+import { Server } from "socket.io";
+import express from "express";
+import http from "http";
+
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = new Server(server);
 
 // TODO: Mover isso para "exemples"
 const PORT = 3000;
+const TOKEN = "my_super_token";
 const HOSTS = {
     [`server-a.localhost`]: { socket: null },
     [`server-b.localhost`]: { socket: null },
@@ -15,7 +17,7 @@ const HOSTS = {
 
 io.use((socket, next) => {
     // TODO: Usar sockets seguros (TLS/SSL) para criptografar a comunicação entre os servidores
-    if (socket.handshake.query.token === "my_super_token") {
+    if (socket.handshake.query.token === TOKEN) {
         console.log(`Socket ${socket.id} authenticated`);
         next();
     } else {
