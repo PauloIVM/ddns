@@ -23,6 +23,6 @@ TODO: Parece q esse cara fez algo bem parecido e tem uma boa documentação.. da
 - https://medium.com/@embbnux/building-a-http-tunnel-with-websocket-and-node-js-98068b0225d3
 
 ```
-node src/index.js tunnel-server -h server-a.localhost -p 3000 -t my_token
+node src/index.js tunnel-server -h server-a.localhost -p 3000 -t my_token -s 3000 -o 8000
 node src/index.js tunnel-client -h server-a.localhost -p 4000 -t my_token -u http://localhost:3000
 ```

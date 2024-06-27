@@ -3,9 +3,11 @@ import express from "express";
 import http from "http";
 
 export class TunnelServer {
-    constructor({ availableHosts, token, port } = {}) {
+    constructor({ availableHosts, token, port, socketTimeout, httpTimeout } = {}) {
         if (!port || !availableHosts) throw new Error("Port and Hosts are required");
         this.port = port;
+        this.socketTimeout = Number(socketTimeout) || 60000;
+        this.httpTimeout = Number(httpTimeout) || 60000;
         this.token = token;
         this.hosts = availableHosts.reduce((acc, curr) => {
             acc[curr] = { socket: null };
@@ -19,6 +21,7 @@ export class TunnelServer {
     listen(cb) {
         if (this.token) this.socketServer.use(this.authSocketConnection.bind(this));
         this.socketServer.on("connection", this.handleSocketConnection.bind(this));
+        this.httpServer.use(this.handleHttpTimeout.bind(this));
         this.httpServer.use(this.handleHttpRequest.bind(this));
         this.server.listen(this.port, cb);
     }
@@ -55,7 +58,7 @@ export class TunnelServer {
 
     async handleHttpRequest(req, res) {
         const targetHost = req.hostname;
-        if (!this.hosts[targetHost]) {
+        if (!this.hosts[targetHost] && !res.headersSent) {
             res.status(502).send("No such HOST configured");
             return;
         }
@@ -63,7 +66,7 @@ export class TunnelServer {
         console.log("target host: ", targetHost + req.path);
         if (!targetSocket) await this.retry(targetHost);
         targetSocket = this.hosts[targetHost]?.socket;
-        if (!targetSocket) {
+        if (!targetSocket && !res.headersSent) {
             res.status(502).send("No such HOST available");
             return;
         }
@@ -74,18 +77,28 @@ export class TunnelServer {
         }).on("end", () => {
             body = Buffer.concat(body).toString();
             targetSocket.emit("httpRequest", requestOptions, body, (responseOptions, responseBody) => {
+                if (res.headersSent) return;
                 res.writeHead(responseOptions.statusCode, responseOptions.headers);
                 res.end(responseBody);
             });
         });
     }
 
-    async retry(targetHost, count = 60) {
+    handleHttpTimeout(_, res, next) {
+        const timeout = setTimeout(() => {
+            if (!res.headersSent) res.status(408).send("Request Timeout");
+        }, this.httpTimeout);
+        res.on("finish", () => timeout && clearTimeout(timeout));
+        res.on("close", () => timeout && clearTimeout(timeout));
+        next();
+    };
+
+    async retry(targetHost, initiatedAt = new Date()) {
+        console.log("retrieyng...");
+        if (this.socketTimeout < Date.now() - initiatedAt) return;
         if (this.hosts[targetHost]?.socket) return;
-        if (count === 1) return;
         await this.sleep(1000);
-        console.log(`Retries count: ${count}`);
-        await this.retry(targetHost, count - 1); 
+        await this.retry(targetHost, initiatedAt); 
     }
     
     async sleep(ms) {

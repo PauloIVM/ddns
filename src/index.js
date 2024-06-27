@@ -17,6 +17,8 @@ program.command("tunnel-server")
     .option("-h, --tunnel-server-hosts <hosts>", "Available hosts that tunnel-clients should connetc to this server.")
     .option("-p, --tunnel-server-port <port>", "Port on which the tunnel-server will run within the hosted server.")
     .option("-t, --token <token>", "Token to be passed here and on the tunnel-clients.")
+    .option("-s, --socket-timeout <number>", "Socket connections timeout.")
+    .option("-o, --http-timeout <number>", "Http requests timeout.")
     .action((options) => {
         if (!options.tunnelServerHosts || !options.tunnelServerPort) {
             throw new Error("Required params: --tunnel-server-hosts | --tunnel-server-port");
@@ -25,6 +27,8 @@ program.command("tunnel-server")
             availableHosts: options.tunnelServerHosts.split(","),
             port: options.tunnelServerPort,
             token: options.token,
+            socketTimeout: options.socketTimeout,
+            httpTimeout: options.httpTimeout,
         }).listen(() => console.log("Hosted tunnel-server running on :: 3000..."));
     });
 
