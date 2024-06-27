@@ -2,11 +2,12 @@ import io from "socket.io-client";
 import http from "http";
 
 export class TunnelClient {
-    constructor({ tunnelServerUrl, tunnelServerHost, token, localPort } = {}) {
+    constructor({ tunnelServerUrl, tunnelServerHost, token, localPort, localHostname } = {}) {
         if (!localPort || !tunnelServerUrl || !tunnelServerHost) throw new Error("Port and TunnelServerUrl are required");
         this.token = token;
         this.localPort = localPort;
         this.tunnelServerHost = tunnelServerHost;
+        this.hostname = localHostname || "localhost";
         this.socket = io(tunnelServerUrl, token && { query: { token } });
     }
 
@@ -22,9 +23,8 @@ export class TunnelClient {
     }
 
     handleHttpRequestFromTunnelServer(requestOptions, body, callback) {
-        // TODO: Esse 'localhost' pode dar problema? Ex.: pq n 0.0.0.0 ?
         const options = {
-            hostname: "localhost",
+            hostname: this.hostname,
             port: this.localPort,
             path: requestOptions.url,
             method: requestOptions.method,

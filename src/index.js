@@ -38,6 +38,7 @@ program.command("tunnel-client")
     .option("-h, --tunnel-server-host <host>", "One of the hosts specified in --tunnel-server-hosts in tunnel-server.")
     .option("-p, --tunnel-client-port <port>", "Port on which tunnel-client will run and expose a local server.")
     .option("-t, --token <token>", "Token to be passed here and on the tunnel-server")
+    .option("-l, --local-hostname <number>", "Local hostname, defaults 'localhost'")
     .action((options) => {
         if (!options.tunnelServerUrl || !options.tunnelServerHost || !options.tunnelClientPort) {
             throw new Error("Required params: --tunnel-server-url | --tunnel-server-host | --tunnel-client-port")
@@ -47,6 +48,7 @@ program.command("tunnel-client")
             tunnelServerHost: options.tunnelServerHost,
             localPort: options.tunnelClientPort,
             token: options.token,
+            localHostname: options.localHostname
         }).connect();
     });
 

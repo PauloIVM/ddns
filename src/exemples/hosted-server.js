@@ -1,7 +1,5 @@
 import { TunnelServer } from "../tunnel-server.js";
 
-// TODO: Documentar a necessidade de modificar o /etc/hosts...
-
 new TunnelServer({
     availableHosts: [
         "server-a.localhost",
