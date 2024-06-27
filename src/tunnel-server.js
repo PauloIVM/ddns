@@ -3,7 +3,14 @@ import express from "express";
 import http from "http";
 
 export class TunnelServer {
-    constructor({ availableHosts, token, port, socketTimeout, httpTimeout } = {}) {
+    constructor({
+        availableHosts,
+        token,
+        port,
+        socketTimeout,
+        httpTimeout,
+        logger,
+    } = {}) {
         if (!port || !availableHosts) throw new Error("Port and Hosts are required");
         this.port = port;
         this.socketTimeout = Number(socketTimeout) || 60000;
@@ -16,6 +23,7 @@ export class TunnelServer {
         this.httpServer = express();
         this.server = http.createServer(this.httpServer);
         this.socketServer = new Server(this.server);
+        this.logger = logger || { error: console.error, warn: console.warn, log: console.log };
     }
 
     listen(cb) {
@@ -28,7 +36,11 @@ export class TunnelServer {
 
     authSocketConnection(socket, next) {
         // TODO: Usar sockets seguros (TLS/SSL) para criptografar a comunicação entre os servidores
-        if (socket.handshake.query.token !== this.token) next(new Error("Authentication error"));
+        if (socket.handshake.query.token !== this.token) {
+            this.logger.error(`Unauthorized socket trying to connect: ${socket.id} - ${socket.ip}`)
+            next(new Error("Authentication error"));
+            return;
+        };
         next();
     }
 
@@ -36,21 +48,21 @@ export class TunnelServer {
         socket.on("listen-host", (host) => {
             if (!this.hosts[host.toString()]) {
                 socket.disconnect();
-                console.log(`No such host to connect, failed to: ${socket.id}`);
+                this.logger.warn(`No such host to connect, failed to: ${socket.id}`);
                 return;   
             }
             if (this.hosts[host.toString()].socket) {
                 socket.disconnect();
-                console.log(`Host already has a connection, failed to: ${socket.id}`);
+                this.logger.warn(`Host already has a connection, failed to: ${socket.id}`);
                 return;    
             }
-            console.log(`Cliente conectado: ${socket.id}`);
+            this.logger.log(`Client ${socket.id} connected on ${host.toString()}`);
             this.hosts[host.toString()] = { socket }
         });
         socket.on("disconnect", () => {
-            console.log(`Cliente desconectado: ${socket.id}`);
             Object.keys(this.hosts).forEach((hostname) => {
                 if (this.hosts[hostname]?.socket?.id !== socket.id) return;
+                this.logger.log(`Client ${socket.id} disconnected from ${hostname}`);
                 this.hosts[hostname] = { socket: null };
             });
         });
@@ -63,7 +75,6 @@ export class TunnelServer {
             return;
         }
         let targetSocket = this.hosts[targetHost]?.socket;
-        console.log("target host: ", targetHost + req.path);
         if (!targetSocket) await this.retry(targetHost);
         targetSocket = this.hosts[targetHost]?.socket;
         if (!targetSocket && !res.headersSent) {
@@ -94,7 +105,7 @@ export class TunnelServer {
     };
 
     async retry(targetHost, initiatedAt = new Date()) {
-        console.log("retrieyng...");
+        this.logger.warn(`Lost socket connection to host ${targetHost}, waiting for reconnection..`);
         if (this.socketTimeout < Date.now() - initiatedAt) return;
         if (this.hosts[targetHost]?.socket) return;
         await this.sleep(1000);

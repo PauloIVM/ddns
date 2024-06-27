@@ -29,7 +29,7 @@ program.command("tunnel-server")
             token: options.token,
             socketTimeout: options.socketTimeout,
             httpTimeout: options.httpTimeout,
-        }).listen(() => console.log("Hosted tunnel-server running on :: 3000..."));
+        }).listen(() => console.log(`Tunnel-server running on :${options.tunnelServerPort}`));
     });
 
 program.command("tunnel-client")
