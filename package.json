@@ -1,12 +1,16 @@
 {
-  "name": "ddns",
+  "name": "sst-grok",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
   "repository": "git@github.com:PauloIVM/ddns.git",
-  "author": "Paulo Marinho <pakas_vieira_95@hotmail.com>",
+  "author": "Paulo Marinho <paulo.vieira.marinho@gmail.com>",
   "license": "MIT",
+  "bin": {
+    "open-tunnel": "./src/index.js"
+  },
   "dependencies": {
+    "commander": "^12.1.0",
     "express": "^4.19.2",
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5"
