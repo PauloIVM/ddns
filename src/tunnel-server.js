@@ -11,15 +11,15 @@ export class TunnelServer {
             acc[curr] = { socket: null };
             return acc;
         }, {});
-        this.app = express();
-        this.server = http.createServer(this.app);
-        this.io = new Server(this.server);
+        this.httpServer = express();
+        this.server = http.createServer(this.httpServer);
+        this.socketServer = new Server(this.server);
     }
 
     listen(cb) {
-        if (this.token) this.io.use(this.authSocketConnection.bind(this));
-        this.io.on("connection", this.handleSocketConnection.bind(this));
-        this.app.use(this.handleRequest.bind(this));
+        if (this.token) this.socketServer.use(this.authSocketConnection.bind(this));
+        this.socketServer.on("connection", this.handleSocketConnection.bind(this));
+        this.httpServer.use(this.handleHttpRequest.bind(this));
         this.server.listen(this.port, cb);
     }
 
@@ -53,7 +53,7 @@ export class TunnelServer {
         });
     }
 
-    async handleRequest(req, res) {
+    async handleHttpRequest(req, res) {
         const targetHost = req.hostname;
         if (!this.hosts[targetHost]) {
             res.status(502).send("No such HOST configured");
