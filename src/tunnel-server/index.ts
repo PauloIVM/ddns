@@ -2,7 +2,7 @@ import { Server, Socket } from "socket.io";
 import * as express from "express";
 import * as http from "http";
 
-interface TunnelServerProps {
+interface TunnelServerConfig {
     availableHosts: string[];
     token: string;
     port: number;
@@ -24,7 +24,7 @@ export class TunnelServer {
     private httpServer: express.Express;
     private server: http.Server;
     private socketServer: Server;
-    private logger: TunnelServerProps["logger"];
+    private logger: TunnelServerConfig["logger"];
 
     constructor({
         availableHosts,
@@ -33,7 +33,7 @@ export class TunnelServer {
         socketTimeout,
         httpTimeout,
         logger,
-    }: TunnelServerProps) {
+    }: TunnelServerConfig) {
         if (!port || !availableHosts) throw new Error("Port and Hosts are required");
         this.port = port;
         this.socketTimeout = socketTimeout || 60000;

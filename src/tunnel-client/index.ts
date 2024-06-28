@@ -1,7 +1,7 @@
 import { Socket, io } from "socket.io-client";
 import * as http from "http";
 
-interface TunnelClientProps {
+interface TunnelClientConfig {
     tunnelServerUrl: string;
     tunnelServerHost: string;
     token: string;
@@ -19,7 +19,7 @@ export class TunnelClient {
     private tunnelServerHost: string;
     private hostname: string;
     private socket: Socket;
-    private logger: TunnelClientProps["logger"];
+    private logger: TunnelClientConfig["logger"];
 
     constructor({
         tunnelServerUrl,
@@ -28,7 +28,7 @@ export class TunnelClient {
         localPort,
         localHostname,
         logger
-    }: TunnelClientProps) {
+    }: TunnelClientConfig) {
         if (!localPort || !tunnelServerUrl || !tunnelServerHost) throw new Error("Port and TunnelServerUrl are required");
         this.localPort = localPort;
         this.tunnelServerHost = tunnelServerHost;
