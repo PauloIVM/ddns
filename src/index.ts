@@ -2,8 +2,10 @@
 
 import { Command } from "commander";
 import { version } from "../package.json";
-import { TunnelServer } from "./tunnel-server.js";
-import { TunnelClient } from "./tunnel-client.js";
+import { TunnelServer } from "./tunnel-server";
+import { TunnelClient } from "./tunnel-client";
+export { TunnelServer };
+export { TunnelClient };
 
 const program = new Command();
 
