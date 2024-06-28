@@ -1,6 +1,6 @@
 {
   "name": "sst-grok",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "./src/index.js",
   "type": "module",
   "repository": "git@github.com:PauloIVM/sst-grok.git",
