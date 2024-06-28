@@ -17,6 +17,8 @@ program.command("tunnel-server")
     .option("-h, --tunnel-server-hosts <hosts>", "Available hosts that tunnel-clients should connetc to this server.")
     .option("-p, --tunnel-server-port <port>", "Port on which the tunnel-server will run within the hosted server.")
     .option("-t, --token <token>", "Token to be passed here and on the tunnel-clients.")
+    .option("-s, --socket-timeout <number>", "Socket connections timeout.")
+    .option("-o, --http-timeout <number>", "Http requests timeout.")
     .action((options) => {
         if (!options.tunnelServerHosts || !options.tunnelServerPort) {
             throw new Error("Required params: --tunnel-server-hosts | --tunnel-server-port");
@@ -25,7 +27,9 @@ program.command("tunnel-server")
             availableHosts: options.tunnelServerHosts.split(","),
             port: options.tunnelServerPort,
             token: options.token,
-        }).listen(() => console.log("Hosted tunnel-server running on :: 3000..."));
+            socketTimeout: options.socketTimeout,
+            httpTimeout: options.httpTimeout,
+        }).listen(() => console.log(`Tunnel-server running on :${options.tunnelServerPort}`));
     });
 
 program.command("tunnel-client")
@@ -34,6 +38,7 @@ program.command("tunnel-client")
     .option("-h, --tunnel-server-host <host>", "One of the hosts specified in --tunnel-server-hosts in tunnel-server.")
     .option("-p, --tunnel-client-port <port>", "Port on which tunnel-client will run and expose a local server.")
     .option("-t, --token <token>", "Token to be passed here and on the tunnel-server")
+    .option("-l, --local-hostname <number>", "Local hostname, defaults 'localhost'")
     .action((options) => {
         if (!options.tunnelServerUrl || !options.tunnelServerHost || !options.tunnelClientPort) {
             throw new Error("Required params: --tunnel-server-url | --tunnel-server-host | --tunnel-client-port")
@@ -43,6 +48,7 @@ program.command("tunnel-client")
             tunnelServerHost: options.tunnelServerHost,
             localPort: options.tunnelClientPort,
             token: options.token,
+            localHostname: options.localHostname
         }).connect();
     });
 

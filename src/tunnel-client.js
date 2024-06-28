@@ -2,29 +2,37 @@ import io from "socket.io-client";
 import http from "http";
 
 export class TunnelClient {
-    constructor({ tunnelServerUrl, tunnelServerHost, token, localPort } = {}) {
+    constructor({
+        tunnelServerUrl,
+        tunnelServerHost,
+        token,
+        localPort,
+        localHostname,
+        logger
+    } = {}) {
         if (!localPort || !tunnelServerUrl || !tunnelServerHost) throw new Error("Port and TunnelServerUrl are required");
         this.token = token;
         this.localPort = localPort;
         this.tunnelServerHost = tunnelServerHost;
+        this.hostname = localHostname || "localhost";
         this.socket = io(tunnelServerUrl, token && { query: { token } });
+        this.logger = logger || { error: console.error, warn: console.warn, log: console.log };
     }
 
     connect() {
         this.socket.on("connect", () => {
-            console.log("Conectado ao servidor cloud");
+            this.logger.log(`Connected to tunnel-server ${this.tunnelServerHost}`);
             this.socket.emit("listen-host", this.tunnelServerHost);
         });
         this.socket.on("disconnect", () => {
-            console.log("Desconectado do servidor cloud");
+            this.logger.log(`Disconnected from tunnel-server ${this.tunnelServerHost}`);
         });
         this.socket.on("httpRequest", this.handleHttpRequestFromTunnelServer.bind(this));
     }
 
     handleHttpRequestFromTunnelServer(requestOptions, body, callback) {
-        // TODO: Esse 'localhost' pode dar problema? Ex.: pq n 0.0.0.0 ?
         const options = {
-            hostname: "localhost",
+            hostname: this.hostname,
             port: this.localPort,
             path: requestOptions.url,
             method: requestOptions.method,
