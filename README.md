@@ -58,7 +58,7 @@ Consideremos que estamos nesse cenário, onde não nos serve nem mesmo `ngrok` e
 
 Percebeu onde quero chegar? O EC2 `t2.micro`, que é uma máquina gratuita oferecida pela AWS, possui apenas 1GB de memória RAM; é possível que isso não rode nem mesmo sua aplicação ReactJS. Se você for alugar mais máquinas, no momento em que eu escrevo esse readme, as instâncias mais baratas custam cerca de 6 dólares; facilmente seu projeto pode acabar saindo bem caro para um simples MVP ou portifólio.
 
-Ainda nessa linha, o meu computador pessoal é um Intel Core I5 de 32GB de RAM. Uma máquina AWS mais ou menos equivalente, o `t3.2xlarge`, de 32GB, neste momento custa USD 0,3328, que nos dá **cerca de 240 dólares por mês!!**
+Ainda nessa linha, o meu computador pessoal é um Intel Core I5 de 32GB de RAM. Uma máquina AWS mais ou menos equivalente, o `t3.2xlarge`, de 32GB, neste momento custa USD 0,3328 a hora, que nos dá **cerca de 240 dólares por mês!!**
 
 Então, chegamos no caso de uso mais indicado para o `sstGrok`. Imagine que você tenha uma máquina local potente, com a possibilidade de deixá-la ligada 24/7. Você deseja subir para produção um projeto razoavelmente complexo, que demande um consumo considerável de RAM e processamento. Você precisa, ou deseja, subir em um domínio próprio. Neste caso, então, o `sstGrok` pode lhe ser muito útil.
 
