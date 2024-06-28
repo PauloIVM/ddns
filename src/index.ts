@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import json from "../package.json" assert { type: 'json' };
+import { version } from "../package.json";
 import { TunnelServer } from "./tunnel-server.js";
 import { TunnelClient } from "./tunnel-client.js";
 
@@ -10,7 +10,7 @@ const program = new Command();
 program
     .name("sst-grok")
     .description("CLI to manage your own HTTP strong tunnels.")
-    .version(json.version);
+    .version(version);
 
 program.command("tunnel-server")
     .description("Start a tunnel-server, that should bem used in a hosted server (the server with a fixed IP or some DNS).")
@@ -25,10 +25,10 @@ program.command("tunnel-server")
         }
         new TunnelServer({
             availableHosts: options.tunnelServerHosts.split(","),
-            port: options.tunnelServerPort,
+            port: Number(options.tunnelServerPort),
             token: options.token,
-            socketTimeout: options.socketTimeout,
-            httpTimeout: options.httpTimeout,
+            socketTimeout: Number(options.socketTimeout),
+            httpTimeout: Number(options.httpTimeout),
         }).listen(() => console.log(`Tunnel-server running on :${options.tunnelServerPort}`));
     });
 
@@ -46,7 +46,7 @@ program.command("tunnel-client")
         new TunnelClient({
             tunnelServerUrl: options.tunnelServerUrl,
             tunnelServerHost: options.tunnelServerHost,
-            localPort: options.tunnelClientPort,
+            localPort: Number(options.tunnelClientPort),
             token: options.token,
             localHostname: options.localHostname
         }).connect();
