@@ -1,4 +1,5 @@
 import * as http from "http";
+import * as crypto from "crypto";
 import { Socket, io } from "socket.io-client";
 import { ReqPayload, ResPayload, SocketCallback } from "../types";
 
@@ -6,6 +7,7 @@ interface TunnelClientConfig {
     tunnelServerUrl: string;
     tunnelServerHost: string;
     token: string;
+    secretKey?: string;
     localPort: number;
     localHostname: string;
     logger?: {
@@ -20,6 +22,7 @@ export class TunnelClient {
     private tunnelServerHost: string;
     private hostname: string;
     private socket: Socket;
+    private secretKey: string;
     private logger: TunnelClientConfig["logger"];
 
     constructor({
@@ -28,13 +31,20 @@ export class TunnelClient {
         token,
         localPort,
         localHostname,
+        secretKey,
         logger
     }: TunnelClientConfig) {
         if (!localPort || !tunnelServerUrl || !tunnelServerHost) throw new Error("Port and TunnelServerUrl are required");
+        if (secretKey && secretKey.length !== 32) {
+            throw new Error("SecretKey should have 32 chars.");
+        }
         this.localPort = localPort;
         this.tunnelServerHost = tunnelServerHost;
         this.hostname = localHostname || "localhost";
-        this.socket = io(tunnelServerUrl, token && { query: { token } });
+        this.secretKey = secretKey || "12345678123456781234567812345678";
+        this.socket = io(tunnelServerUrl, token && { query: {
+            token: this.encrypt(token)
+        }});
         this.logger = logger || { error: console.error, warn: console.warn, log: console.log };
     }
 
@@ -72,6 +82,22 @@ export class TunnelClient {
             this.logger.error(error);
             callback({ statusCode: 500, headers: {}, body: "" });
         }
+    }
+
+    private encrypt(data: string) {
+        const ivString = crypto.randomBytes(16).toString("hex").slice(0, 16);
+        const iv = Buffer.from(ivString);
+        const cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(this.secretKey), iv);
+        const encrypted = cipher.update(data, "utf8", "hex") + cipher.final("hex");
+        return ivString + encrypted;
+    }
+
+    private decrypt(text: string) {
+        const iv = text.slice(0, 16);
+        const data = text.slice(16);
+        const decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from(this.secretKey), Buffer.from(iv));
+        const decrypted = decipher.update(data, "hex", "utf8") + decipher.final("utf8");
+        return decrypted;
     }
 }
 
