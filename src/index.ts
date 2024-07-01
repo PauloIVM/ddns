@@ -19,8 +19,7 @@ program.command("tunnel-server")
     .option("-h, --tunnel-server-hosts <hosts>", "Available hosts that tunnel-clients should connetc to this server.")
     .option("-p, --tunnel-server-port <port>", "Port on which the tunnel-server will run within the hosted server.")
     .option("-t, --token <token>", "Token to be passed here and on the tunnel-clients.")
-    .option("-s, --socket-timeout <number>", "Socket connections timeout.")
-    .option("-o, --http-timeout <number>", "Http requests timeout.")
+    .option("-r, --reconnection-timeout <number>", "Reconnection timeout.")
     .action((options) => {
         if (!options.tunnelServerHosts || !options.tunnelServerPort) {
             throw new Error("Required params: --tunnel-server-hosts | --tunnel-server-port");
@@ -29,8 +28,7 @@ program.command("tunnel-server")
             availableHosts: options.tunnelServerHosts.split(","),
             port: Number(options.tunnelServerPort),
             token: options.token,
-            socketTimeout: Number(options.socketTimeout),
-            httpTimeout: Number(options.httpTimeout),
+            reconnectionTimeout: Number(options.socketTimeout),
         }).listen(() => console.log(`Tunnel-server running on :${options.tunnelServerPort}`));
     });
 

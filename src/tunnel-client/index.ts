@@ -1,5 +1,6 @@
-import { Socket, io } from "socket.io-client";
 import * as http from "http";
+import { Socket, io } from "socket.io-client";
+import { ReqPayload, ResPayload, SocketCallback } from "../types";
 
 interface TunnelClientConfig {
     tunnelServerUrl: string;
@@ -45,29 +46,68 @@ export class TunnelClient {
         this.socket.on("disconnect", () => {
             this.logger.log(`Disconnected from tunnel-server ${this.tunnelServerHost}`);
         });
-        this.socket.on("httpRequest", this.handleHttpRequestFromTunnelServer.bind(this));
+        this.socket.on("http-request", this.handleHttpRequestFromTunnelServer.bind(this));
     }
 
-    private handleHttpRequestFromTunnelServer(requestOptions, body, callback) {
+    private async handleHttpRequestFromTunnelServer(reqPayload: ReqPayload, callback: SocketCallback) {
         const options = {
             hostname: this.hostname,
             port: this.localPort,
-            path: requestOptions.url,
-            method: requestOptions.method,
-            headers: requestOptions.headers
+            path: reqPayload.url,
+            method: reqPayload.method,
+            headers: reqPayload.headers,
+            body: reqPayload.body,
         };
-        const req = http.request(options, (res) => {
-            const responseBodyChunks: Buffer[] = [];
-            res.on("data", (chunk) => { responseBodyChunks.push(chunk); }).on("end", () => {
-                const responseBody = Buffer.concat(responseBodyChunks).toString();
-                const responseOptions = { statusCode: res.statusCode, headers: res.headers };
-                callback(responseOptions, responseBody);
+        try {
+            const res = await HttpClient.request(
+                options.hostname,
+                options.port,
+                options.path,
+                options.method,
+                options.headers,
+                options.body
+            );
+            callback(res);
+        } catch (error) {
+            this.logger.error(error);
+            callback({ statusCode: 500, headers: {}, body: "" });
+        }
+    }
+}
+
+class HttpClient {
+    static async request(
+        hostname: string,
+        localPort: number,
+        path: string,
+        method: string,
+        headers: http.IncomingHttpHeaders,
+        body: string
+    ): Promise<ResPayload> {
+        const options = {
+            hostname: hostname,
+            port: localPort,
+            path,
+            method: method,
+            headers: headers
+        };
+        return new Promise((resolve, rejects) => {
+            const req = http.request(options, (res) => {
+                const resBodyChunks: Buffer[] = [];
+                res.on("data", (chunk) => { resBodyChunks.push(chunk); }).on("end", () => {
+                    const responseBody = Buffer.concat(resBodyChunks).toString();
+                    resolve({
+                        statusCode: res.statusCode,
+                        headers: res.headers,
+                        body: responseBody
+                    });
+                });
             });
+            req.on("error", (e) => {
+                rejects(e);
+            });
+            if (body) req.write(body);
+            req.end();
         });
-        req.on("error", (e) => {
-            console.error(`Problema com a requisição: ${e.message}`);
-        });
-        if (body) req.write(body);
-        req.end();
     }
 }

@@ -1,13 +1,12 @@
-import { Server, Socket } from "socket.io";
-import * as express from "express";
 import * as http from "http";
+import { ResPayload } from "../types";
+import { Server, Socket } from "socket.io";
 
 interface TunnelServerConfig {
     availableHosts: string[];
     token: string;
     port: number;
-    socketTimeout?: number;
-    httpTimeout?: number;
+    reconnectionTimeout?: number;
     logger?: {
         error: (msg: string) => void;
         warn: (msg: string) => void;
@@ -17,11 +16,9 @@ interface TunnelServerConfig {
 
 export class TunnelServer {
     private port: number;
-    private socketTimeout: number;
-    private httpTimeout: number;
+    private reconnectionTimeout: number;
     private token: string;
     private hosts: { [host: string]: { socket?: Socket } };
-    private httpServer: express.Express;
     private server: http.Server;
     private socketServer: Server;
     private logger: TunnelServerConfig["logger"];
@@ -30,21 +27,18 @@ export class TunnelServer {
         availableHosts,
         token,
         port,
-        socketTimeout,
-        httpTimeout,
+        reconnectionTimeout,
         logger,
     }: TunnelServerConfig) {
         if (!port || !availableHosts) throw new Error("Port and Hosts are required");
         this.port = port;
-        this.socketTimeout = socketTimeout || 60000;
-        this.httpTimeout = httpTimeout || 60000;
+        this.reconnectionTimeout = reconnectionTimeout || 60000;
         this.token = token;
         this.hosts = availableHosts.reduce((acc, curr) => {
             acc[curr] = { socket: null };
             return acc;
         }, {});
-        this.httpServer = express();
-        this.server = http.createServer(this.httpServer);
+        this.server = http.createServer(this.handleHttpRequest.bind(this));
         this.socketServer = new Server(this.server);
         this.logger = logger || { error: console.error, warn: console.warn, log: console.log };
     }
@@ -52,13 +46,11 @@ export class TunnelServer {
     listen(cb?: Function) {
         if (this.token) this.socketServer.use(this.authSocketConnection.bind(this));
         this.socketServer.on("connection", this.handleSocketConnection.bind(this));
-        this.httpServer.use(this.handleHttpTimeout.bind(this));
-        this.httpServer.use(this.handleHttpRequest.bind(this));
         this.server.listen(this.port, cb);
     }
 
-    private authSocketConnection(socket: Socket, next: express.NextFunction) {
-        // TODO: Usar sockets seguros (TLS/SSL) para criptografar a comunicação entre os servidores
+    private authSocketConnection(socket: Socket, next: (err?: any) => void) {
+        // TODO: Usar criptografia simétrica para a comunicação entre os servidores
         if (socket.handshake.query.token !== this.token) {
             this.logger.error(`Unauthorized socket trying to connect: ${socket.id}`)
             next(new Error("Authentication error"));
@@ -91,45 +83,50 @@ export class TunnelServer {
         });
     }
 
-    private async handleHttpRequest(req: express.Request, res: express.Response) {
-        const targetHost = req.hostname;
-        if (!this.hosts[targetHost] && !res.headersSent) {
-            res.status(502).send("No such HOST configured");
+    private async handleHttpRequest(req: http.IncomingMessage, res: http.ServerResponse) {
+        const targetHost = req.headers.host?.split(":")[0];
+        if (!this.hosts[targetHost]) {
+            res.writeHead(502);
+            res.end(`No such ${targetHost} HOST configured`);
             return;
         }
         let targetSocket = this.hosts[targetHost]?.socket;
         if (!targetSocket) await this.retry(targetHost);
         targetSocket = this.hosts[targetHost]?.socket;
-        if (!targetSocket && !res.headersSent) {
-            res.status(502).send("No such HOST available");
+        if (!targetSocket) {
+            res.writeHead(502);
+            res.end("No such HOST available");
             return;
         }
-        const requestOptions = { method: req.method, headers: req.headers, url: req.url };
-        const bodyChunks = [];
-        req.on("data", (chunk) => {
-            bodyChunks.push(chunk);
-        }).on("end", () => {
-            const body = Buffer.concat(bodyChunks).toString();
-            targetSocket.emit("httpRequest", requestOptions, body, (responseOptions, responseBody) => {
-                if (res.headersSent) return;
-                res.writeHead(responseOptions.statusCode, responseOptions.headers);
-                res.end(responseBody);
-            });
+        // TODO: Ao invés de promisificar e juntar o body em um único array, enviar cada chunk em
+        //       um 'emit' distinto. Daí a lib vai suportar streams (hoje vai dar problema se a stream
+        //       for muito grande).
+        const body = await this.promisifyHttpReq(req);
+        const reqPayload = {
+            method: req.method,
+            headers: req.headers,
+            url: req.url,
+            body
+        };
+        targetSocket.emit("http-request", reqPayload, (resPayload: ResPayload) => {
+            res.writeHead(resPayload.statusCode || 200, resPayload.headers);
+            res.end(resPayload.body);
         });
     }
 
-    private handleHttpTimeout(_: express.Request, res: express.Response, next: express.NextFunction) {
-        const timeout = setTimeout(() => {
-            if (!res.headersSent) res.status(408).send("Request Timeout");
-        }, this.httpTimeout);
-        res.on("finish", () => timeout && clearTimeout(timeout));
-        res.on("close", () => timeout && clearTimeout(timeout));
-        next();
-    };
+    private promisifyHttpReq(req: http.IncomingMessage): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const bodyChunks = [];
+            req
+                .on("data", (chunk) => { bodyChunks.push(chunk); })
+                .on("end", () => { resolve(Buffer.concat(bodyChunks).toString()); })
+                .on("error", (e) => reject(e));
+        });
+    }
 
     private async retry(targetHost: string, initiatedAt = new Date()) {
         this.logger.warn(`Lost socket connection to host ${targetHost}, waiting for reconnection..`);
-        if (this.socketTimeout < Date.now() - initiatedAt.getTime()) return;
+        if (this.reconnectionTimeout < Date.now() - initiatedAt.getTime()) return;
         if (this.hosts[targetHost]?.socket) return;
         await this.sleep(1000);
         await this.retry(targetHost, initiatedAt); 

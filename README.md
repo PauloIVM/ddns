@@ -26,8 +26,8 @@ TODO: ...
 TODO: ...
 
 ```
-node src/index.js tunnel-server -h server-a.localhost -p 3000 -t my_token -s 3000 -o 8000
-node src/index.js tunnel-client -h server-a.localhost -p 4000 -t my_token -u http://localhost:3000
+node lib/src/index.js tunnel-server -h server-a.localhost -p 3000 -t my_token -r 8000
+node lib/src/index.js tunnel-client -h server-a.localhost -p 4000 -t my_token -u http://localhost:3000
 ```
 
 ### Múltiplos clientes
