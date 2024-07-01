@@ -1,34 +1,34 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import json from "../package.json" assert { type: 'json' };
-import { TunnelServer } from "./tunnel-server.js";
-import { TunnelClient } from "./tunnel-client.js";
+import { version } from "../package.json";
+import { TunnelServer } from "./tunnel-server";
+import { TunnelClient } from "./tunnel-client";
+export { TunnelServer };
+export { TunnelClient };
 
 const program = new Command();
 
 program
     .name("sst-grok")
     .description("CLI to manage your own HTTP strong tunnels.")
-    .version(json.version);
+    .version(version);
 
 program.command("tunnel-server")
     .description("Start a tunnel-server, that should bem used in a hosted server (the server with a fixed IP or some DNS).")
     .option("-h, --tunnel-server-hosts <hosts>", "Available hosts that tunnel-clients should connetc to this server.")
     .option("-p, --tunnel-server-port <port>", "Port on which the tunnel-server will run within the hosted server.")
     .option("-t, --token <token>", "Token to be passed here and on the tunnel-clients.")
-    .option("-s, --socket-timeout <number>", "Socket connections timeout.")
-    .option("-o, --http-timeout <number>", "Http requests timeout.")
+    .option("-r, --reconnection-timeout <number>", "Reconnection timeout.")
     .action((options) => {
         if (!options.tunnelServerHosts || !options.tunnelServerPort) {
             throw new Error("Required params: --tunnel-server-hosts | --tunnel-server-port");
         }
         new TunnelServer({
             availableHosts: options.tunnelServerHosts.split(","),
-            port: options.tunnelServerPort,
+            port: Number(options.tunnelServerPort),
             token: options.token,
-            socketTimeout: options.socketTimeout,
-            httpTimeout: options.httpTimeout,
+            reconnectionTimeout: Number(options.socketTimeout),
         }).listen(() => console.log(`Tunnel-server running on :${options.tunnelServerPort}`));
     });
 
@@ -46,7 +46,7 @@ program.command("tunnel-client")
         new TunnelClient({
             tunnelServerUrl: options.tunnelServerUrl,
             tunnelServerHost: options.tunnelServerHost,
-            localPort: options.tunnelClientPort,
+            localPort: Number(options.tunnelClientPort),
             token: options.token,
             localHostname: options.localHostname
         }).connect();

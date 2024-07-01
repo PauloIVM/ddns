@@ -9,7 +9,7 @@
 
 ## Introdução
 
-Esta é uma ferramenta de tunelamento para ajudá-lo a expor um servidor web (http) local para a internet.
+Esta é uma ferramenta de tunelamento para ajudá-lo a reduzir custos de infraestrutura.
 
 O `sstGrok` é uma lib de tunelamento ponta a ponta. Ou seja, você deverá executá-la do lado do(s) servidor(es) local(ais) e também do lado do servidor hospedado (com um ip fixo ou um domínio).
 
@@ -26,8 +26,8 @@ TODO: ...
 TODO: ...
 
 ```
-node src/index.js tunnel-server -h server-a.localhost -p 3000 -t my_token -s 3000 -o 8000
-node src/index.js tunnel-client -h server-a.localhost -p 4000 -t my_token -u http://localhost:3000
+node lib/src/index.js tunnel-server -h server-a.localhost -p 3000 -t my_token -r 8000
+node lib/src/index.js tunnel-client -h server-a.localhost -p 4000 -t my_token -u http://localhost:3000
 ```
 
 ### Múltiplos clientes
@@ -75,3 +75,4 @@ Ou seja, o cenário ideal para o `sstGrok` é quando se deseja alugar apenas rec
 - [ ] Criar exemplo com um t2.micro e aws route 53 com múltiplos subdomains;
 - [ ] Gravar um vídeo com estes exemplos, e mostrando tbm a perda de conectividade, em especial usando uma máquina virtual para os servidores locais e cortando a conexão por algum tempo;
 - [ ] Publicar imagem no docker-hub e atualizar aqui no readme.
+- [ ] Tentar importar em um projeto typescript e tentar usar o CLI de forma global.

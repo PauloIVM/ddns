@@ -1,0 +1,35 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "declaration": true,
+        "noImplicitAny": false,
+        "removeComments": true,
+        "noLib": false,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "moduleResolution": "node",
+        "target": "es6",
+        "sourceMap": true,
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "outDir": "./lib",
+        "rootDirs": [
+            "src"
+        ],
+        "lib": [
+            "ESNext",
+            "dom"
+        ],
+        "types": [
+            "jest"
+        ]
+    },
+    "include": [
+        "./types.d.ts",
+        "src/**/*"
+    ],
+    "exclude": [
+        "**/node_modules/**/*",
+        "**/*.test.ts*",
+    ]
+}
