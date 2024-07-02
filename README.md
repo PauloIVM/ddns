@@ -77,12 +77,46 @@ Repare que o servidor está rodando na porta 4000, mas estamos acessando na port
 
 É claro que, até então, estamos rodando tudo localmente e no mesmo host, o que pode não deixar tão evidente o propósito da lib. Então vamos para alguns usos mais interessantes.
 
+### Rodando múltiplos clientes
+
+Vamos supor que você tenha à disposição algo como um EC2 e um AWS Route 53. Então, vamos supor que você tenha direcionado vários subdomínios para esse EC2, e deseje que cada subdomínio conecte-se a um processo local distinto.
+
+Neste caso, você poderia rodar vários processos da lib no EC2, cada um em uma porta distinta, e utilizar um nginx da vida pra rotear cada subdomínio pra porta correta. Contudo, não é necessário. O `myGrok` te permite definir vários hosts disponíveis para se conectar do lado do servidor hospedado; um host para cada client local.
+
+Para simularmos esse caso, mas ainda rodando tudo localmente, podemos alterar o `/etc/hosts`, adicionando mais hosts locais. Quando você abrir este arquivo, é provável que encontre a linha `127.0.0.1 localhost` preenchida; assim, vamos adicionar outros hosts conforme a seguir neste arquivo:
+
 ```
-node lib/src/index.js tunnel-server -h server-a.localhost -p 3000 -s 12345678912345678912345678912345
-node lib/src/index.js tunnel-client -h server-a.localhost -p 4000 -u http://localhost:3000 -s 12345678912345678912345678912345
+127.0.0.1 localhost
+127.0.0.1 server-a
+127.0.0.1 server-b
+127.0.0.1 server-c
 ```
 
-### Múltiplos clientes
+Adicionados estes hosts, agora rode três servidores JS, semelhante ao que fizemos no exemplo anterior, cada um em uma ports diferente. Vamos supor que você tenha inicializado um na porta 4000, outro na 4001 e outro na 4002.
+
+Agora, podemos rodar o `tunnel-server` da seguinte forma:
+
+```shell
+my-grok tunnel-server -h server-a,server-b,server-c -p 3000
+```
+
+E rodamos os túneis de cada um dos clients:
+
+```shell
+my-grok tunnel-client -h server-a -p 4000 -u http://localhost:3000
+```
+
+```shell
+my-grok tunnel-client -h server-b -p 4001 -u http://localhost:3000
+```
+
+```shell
+my-grok tunnel-client -h server-c -p 4002 -u http://localhost:3000
+```
+
+E pronto. Acessando no seu navegador `http://server-a:3000`, será feito o proxy para o servidor local rodando na porta 4000. Se acessar a url com o server-b, para a 4001, e assim por diante.
+
+### Exemplo real na AWS com EC2 e Route 53
 
 TODO: ...
 
