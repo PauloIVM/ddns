@@ -5,7 +5,7 @@ import { Server, Socket } from "socket.io";
 
 interface TunnelServerConfig {
     availableHosts: string[];
-    token: string;
+    token?: string;
     secretKey?: string;
     port: number;
     reconnectionTimeout?: number;
@@ -28,7 +28,7 @@ export class TunnelServer {
 
     constructor({
         availableHosts,
-        token,
+        token = "default_token",
         port,
         reconnectionTimeout,
         logger,
@@ -49,18 +49,20 @@ export class TunnelServer {
     }
 
     listen(cb?: Function) {
-        if (this.token) this.socketServer.use(this.authSocketConnection.bind(this));
+        this.socketServer.use(this.authSocketConnection.bind(this));
         this.socketServer.on("connection", this.handleSocketConnection.bind(this));
         this.server.listen(this.port, cb);
     }
 
     private authSocketConnection(socket: Socket, next: (err?: any) => void) {
-        if (this.cripto.decrypt(socket.handshake.query.token as string) !== this.token) {
+        try {
+            const isValid = this.cripto.decrypt(socket.handshake.query.token as string) === this.token;
+            if (!isValid) throw new Error();
+            next();
+        } catch (error) {
             this.logger.error(`Unauthorized socket trying to connect: ${socket.id}`)
             next(new Error("Authentication error"));
-            return;
-        };
-        next();
+        }
     }
 
     private handleSocketConnection(socket: Socket) {

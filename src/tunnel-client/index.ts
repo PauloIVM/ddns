@@ -6,7 +6,7 @@ import { ReqPayload } from "../types";
 interface TunnelClientConfig {
     tunnelServerUrl: string;
     tunnelServerHost: string;
-    token: string;
+    token?: string;
     secretKey?: string;
     localPort: number;
     localHostname: string;
@@ -28,20 +28,20 @@ export class TunnelClient {
     constructor({
         tunnelServerUrl,
         tunnelServerHost,
-        token,
+        token = "default_token",
         localPort,
         localHostname,
         secretKey,
         logger
     }: TunnelClientConfig) {
-        if (!localPort || !tunnelServerUrl || !tunnelServerHost) throw new Error("Port and TunnelServerUrl are required");
+        if (!localPort || !tunnelServerUrl || !tunnelServerHost) {
+            throw new Error("Port and TunnelServerUrl are required");
+        }
         this.localPort = localPort;
         this.tunnelServerHost = tunnelServerHost;
         this.hostname = localHostname || "localhost";
         this.cripto = new Crypto(secretKey);
-        this.socket = io(tunnelServerUrl, token && { query: {
-            token: this.cripto.encrypt(token)
-        }});
+        this.socket = io(tunnelServerUrl, { query: { token: this.cripto.encrypt(token) }});
         this.logger = logger || { error: console.error, warn: console.warn, log: console.log };
     }
 
@@ -56,16 +56,16 @@ export class TunnelClient {
         this.socket.on("http-request", this.handleHttpRequestFromTunnelServer.bind(this));
     }
 
-    private async handleHttpRequestFromTunnelServer(reqPayloadEncripted: string, callback: (d: string) => void) {
+    private async handleHttpRequestFromTunnelServer(reqPayload: string, callback: (d: string) => void) {
         try {
-            const reqPayload = this.cripto.decryptOb<ReqPayload>(reqPayloadEncripted);
+            const req = this.cripto.decryptOb<ReqPayload>(reqPayload);
             const res = await HttpClient.request({
                 hostname: this.hostname,
                 port: this.localPort,
-                path: reqPayload.url,
-                method: reqPayload.method,
-                headers: reqPayload.headers,
-                body: reqPayload.body
+                path: req.url,
+                method: req.method,
+                headers: req.headers,
+                body: req.body
             });
             callback(this.cripto.encryptOb(res));
         } catch (error) {
