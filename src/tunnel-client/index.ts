@@ -1,7 +1,7 @@
 import { HttpClient } from "../http-client";
 import { Crypto } from "../crypto";
 import { Socket, io } from "socket.io-client";
-import { ReqPayload, SocketCallback } from "../types";
+import { ReqPayload } from "../types";
 
 interface TunnelClientConfig {
     tunnelServerUrl: string;
@@ -56,8 +56,9 @@ export class TunnelClient {
         this.socket.on("http-request", this.handleHttpRequestFromTunnelServer.bind(this));
     }
 
-    private async handleHttpRequestFromTunnelServer(reqPayload: ReqPayload, callback: SocketCallback) {
+    private async handleHttpRequestFromTunnelServer(reqPayloadEncripted: string, callback: (d: string) => void) {
         try {
+            const reqPayload = this.cripto.decryptOb<ReqPayload>(reqPayloadEncripted);
             const res = await HttpClient.request({
                 hostname: this.hostname,
                 port: this.localPort,
@@ -66,10 +67,10 @@ export class TunnelClient {
                 headers: reqPayload.headers,
                 body: reqPayload.body
             });
-            callback(res);
+            callback(this.cripto.encryptOb(res));
         } catch (error) {
             this.logger.error(error);
-            callback({ statusCode: 500, headers: {}, body: "" });
+            callback(this.cripto.encryptOb({ statusCode: 500, headers: {}, body: "" }));
         }
     }
 }

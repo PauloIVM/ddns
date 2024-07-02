@@ -12,5 +12,3 @@ export type ResPayload = {
     headers: http.IncomingHttpHeaders;
     body: string;
 };
-
-export type SocketCallback = (r: ResPayload) => void;

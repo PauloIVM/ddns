@@ -1,6 +1,6 @@
 import * as http from "http";
 import { Crypto } from "../crypto";
-import { ResPayload } from "../types";
+import { ResPayload, ReqPayload } from "../types";
 import { Server, Socket } from "socket.io";
 
 interface TunnelServerConfig {
@@ -43,7 +43,7 @@ export class TunnelServer {
             return acc;
         }, {});
         this.cripto = new Crypto(secretKey);
-        this.server = http.createServer(this.handleHttpRequest.bind(this));
+        this.server = http.createServer(this.handleHttp.bind(this));
         this.socketServer = new Server(this.server);
         this.logger = logger || { error: console.error, warn: console.warn, log: console.log };
     }
@@ -76,7 +76,7 @@ export class TunnelServer {
                 return;    
             }
             this.logger.log(`Client ${socket.id} connected on ${host.toString()}`);
-            this.hosts[host.toString()] = { socket }
+            this.hosts[host.toString()] = { socket };
         });
         socket.on("disconnect", () => {
             Object.keys(this.hosts).forEach((hostname) => {
@@ -85,6 +85,15 @@ export class TunnelServer {
                 this.hosts[hostname] = { socket: null };
             });
         });
+    }
+
+    private handleHttp(req: http.IncomingMessage, res: http.ServerResponse) {
+        try {
+            this.handleHttpRequest(req, res);
+        } catch (error) {
+            res.writeHead(502);
+            res.end("Internal server error");
+        }
     }
 
     private async handleHttpRequest(req: http.IncomingMessage, res: http.ServerResponse) {
@@ -102,22 +111,22 @@ export class TunnelServer {
             res.end("No such HOST available");
             return;
         }
-        // TODO: Ao invés de promisificar e juntar o body em um único array, enviar cada chunk em
-        //       um 'emit' distinto. Daí a lib vai suportar streams (hoje vai dar problema se a stream
-        //       for muito grande).
         const body = await this.promisifyHttpReq(req);
-        const reqPayload = {
+        const reqPayload = this.cripto.encryptOb<ReqPayload>({
             method: req.method,
             headers: req.headers,
             url: req.url,
             body
-        };
-        targetSocket.emit("http-request", reqPayload, (resPayload: ResPayload) => {
+        });
+        targetSocket.emit("http-request", reqPayload, (resPayloadEncripted: string) => {
+            const resPayload = this.cripto.decryptOb<ResPayload>(resPayloadEncripted);
             res.writeHead(resPayload.statusCode || 200, resPayload.headers);
             res.end(resPayload.body);
         });
     }
 
+    // TODO: Support broadcasting a stream without grouping it all here. This can cause problems in
+    //       large streams, such as media streams, etc. This may be difficult given the encryption.
     private promisifyHttpReq(req: http.IncomingMessage): Promise<string> {
         return new Promise((resolve, reject) => {
             const bodyChunks = [];
