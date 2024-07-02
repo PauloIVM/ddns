@@ -36,6 +36,8 @@ O CLI do `myGrok` conta com um comando para ser executado na aplicação hospeda
 O comando para rodar do lado hospedado é o `my-grok tunnel-server ...` e o comando do lado local é o `my-grok tunnel-client ...`.
 
 Para o comando `tunnel-server`, os seguintes parâmetros podem ser passados:
+
+```
 ____________
 |    |     |
 | -h | ... |
@@ -43,8 +45,11 @@ ____________
 | -t | ... |
 | -s | ... |
 |____|_____|
+```
 
 Para o comando `tunnel-client`, os seguintes parâmetros podem ser passados:
+
+```
 ____________
 | -h | ... |
 | -p | ... |
@@ -52,6 +57,7 @@ ____________
 | -t | ... |
 | -s | ... |
 |____|_____|
+```
 
 TODO: Explicar cada um dos parâmetros...
 
