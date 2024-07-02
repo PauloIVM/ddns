@@ -15,6 +15,8 @@ O `myGrok` é uma lib de tunelamento ponta a ponta. Ou seja, a ideia é executá
 
 Um diferencial do `myGrok` é proporcionar um tunelamento de caráter mais duradouro. Ou seja, se você tem um servidor hospedado e deseja criar nele túneis para outros servidores com IPs dinâmicos e manter esses túneis por vários dias, meses ou anos, o `myGrok` será a ferramenta ideal. Isto pois a lib conta com um sistema de re-conexão caso a disponibilidade dos servidores locais/dinâmicos caiam por um curto período de tempo (seja devido ao provedor de internet trocar o IP, ou realmente uma queda temporária de internet).
 
+O tunelamento é feito com uma criptografia simétrica, trazendo segurança contra qualquer ataque middle-man.
+
 Para saber mais sobre os casos de uso mais indicados para a lib, confira em [Motivação](#motivação).
 
 ## Instalação
