@@ -11,7 +11,7 @@
 
 Esta é uma ferramenta de tunelamento para ajudá-lo a reduzir custos de infraestrutura.
 
-O `myGrok` é uma lib de tunelamento ponta a ponta. Ou seja, você deverá executá-la do lado do(s) servidor(es) local(ais) e também do lado do servidor hospedado (com um ip fixo ou um domínio).
+O `myGrok` é uma lib de tunelamento ponta a ponta. Ou seja, a ideia é executá-la do lado do(s) servidor(es) local(ais) e também do lado do servidor hospedado (com um ip fixo ou um domínio).
 
 Um diferencial do `myGrok` é proporcionar um tunelamento de caráter mais duradouro. Ou seja, se você tem um servidor hospedado e deseja criar nele túneis para outros servidores com IPs dinâmicos e manter esses túneis por vários dias, meses ou anos, o `myGrok` será a ferramenta ideal. Isto pois a lib conta com um sistema de re-conexão caso a disponibilidade dos servidores locais/dinâmicos caiam por um curto período de tempo (seja devido ao provedor de internet trocar o IP, ou realmente uma queda temporária de internet).
 
@@ -19,11 +19,59 @@ Para saber mais sobre os casos de uso mais indicados para a lib, confira em [Mot
 
 ## Instalação
 
-TODO: ...
+Para usar a lib como um CLI, basta executar:
+
+```shell
+npm i -g my-grok
+```
+
+Caso queira incorporar a lib em um projeto, pode também instalar ao projeto sem a flag `-g`.
 
 ## Exemplos
 
-TODO: ...
+Para um primeiro exemplo, crie um arquivo `test-server.js` com o código a seguir:
+
+```js
+import * as http from "http";
+
+const PORT = 4000;
+const server = http.createServer((req, res) => {
+    req.on("end", () => {
+        console.log("Request complete.");
+        res.writeHead(200, { "Content-Type": "text/plain" });
+        res.end(`req.url: ${req.url}`);
+    });
+});
+server.listen(PORT, () => {
+    console.log(`Client server 1 running on :: ${PORT}`);
+});
+```
+
+Execute o script criado:
+
+```shell
+node test-server.js
+```
+
+Este será um server genérico, que poderíamos estar querendo expor em outra máquina através de tunelamento.
+
+Abra um terminal e digite:
+
+```shell
+my-grok tunnel-server -h localhost -p 3000
+```
+
+Em outro terminal, insira:
+
+```shell
+my-grok tunnel-client -h server-a.localhost -p 4000 -u http://localhost:3000
+```
+
+Agora, se tentarmos acessar em um navegador a url `http://localhost:3000`, veremos o servidor em `JS` que criamos respondendo.
+
+// TODO: Adicionar imagem?
+
+Repare que o servidor está rodando na porta 4000, mas estamos acessando na porta 3000 devido ao `myGrok` estar fazendo o tunelamento que configuramos com os dois comandos executados.
 
 ```
 node lib/src/index.js tunnel-server -h server-a.localhost -p 3000 -s 12345678912345678912345678912345
@@ -68,7 +116,9 @@ Ou seja, o cenário ideal para o `myGrok` é quando se deseja alugar apenas recu
 
 ## TODOs
 
-- [ ] Refatorar para usar typescript;
+- [ ] Possibilitar transmitir os cada chunk de uma stream em uma mensagem distinta do socket.
+
+- [ ] Cria readme em inglês;
 - [ ] Criar testes automatizados;
 - [ ] Criar exemplo rodando tudo local, usando o CLI e servers em js genéricos;
 - [ ] Criar exemplo rodando tudo local com múltiplos clientes (/etc/hosts/);
