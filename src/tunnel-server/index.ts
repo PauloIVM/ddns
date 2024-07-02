@@ -1,5 +1,5 @@
 import * as http from "http";
-import * as crypto from "crypto";
+import { Crypto } from "../crypto";
 import { ResPayload } from "../types";
 import { Server, Socket } from "socket.io";
 
@@ -20,7 +20,7 @@ export class TunnelServer {
     private port: number;
     private reconnectionTimeout: number;
     private token: string;
-    private secretKey: string;
+    private cripto: Crypto;
     private hosts: { [host: string]: { socket?: Socket } };
     private server: http.Server;
     private socketServer: Server;
@@ -35,17 +35,14 @@ export class TunnelServer {
         secretKey
     }: TunnelServerConfig) {
         if (!port || !availableHosts) throw new Error("Port and Hosts are required");
-        if (secretKey && secretKey.length !== 32) {
-            throw new Error("SecretKey should have 32 chars.");
-        }
         this.port = port;
         this.reconnectionTimeout = reconnectionTimeout || 60000;
         this.token = token;
-        this.secretKey = secretKey || "12345678123456781234567812345678";
         this.hosts = availableHosts.reduce((acc, curr) => {
             acc[curr] = { socket: null };
             return acc;
         }, {});
+        this.cripto = new Crypto(secretKey);
         this.server = http.createServer(this.handleHttpRequest.bind(this));
         this.socketServer = new Server(this.server);
         this.logger = logger || { error: console.error, warn: console.warn, log: console.log };
@@ -58,7 +55,7 @@ export class TunnelServer {
     }
 
     private authSocketConnection(socket: Socket, next: (err?: any) => void) {
-        if (this.decrypt(socket.handshake.query.token as string) !== this.token) {
+        if (this.cripto.decrypt(socket.handshake.query.token as string) !== this.token) {
             this.logger.error(`Unauthorized socket trying to connect: ${socket.id}`)
             next(new Error("Authentication error"));
             return;
@@ -143,23 +140,5 @@ export class TunnelServer {
         return new Promise((resolve) => {
             setTimeout(resolve, ms);
         });
-    }
-
-    // https://gist.github.com/aabiskar/c1d80d139f83f6a43593ce503e29964c
-    // TODO: Agrupar essas estruturas de criptografia em uma classe distinta.
-    private encrypt(data: string) {
-        const ivString = crypto.randomBytes(16).toString("hex").slice(0, 16);
-        const iv = Buffer.from(ivString);
-        const cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(this.secretKey), iv);
-        const encrypted = cipher.update(data, "utf8", "hex") + cipher.final("hex");
-        return ivString + encrypted;
-    }
-
-    private decrypt(text: string) {
-        const iv = text.slice(0, 16);
-        const data = text.slice(16);
-        const decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from(this.secretKey), Buffer.from(iv));
-        const decrypted = decipher.update(data, "hex", "utf8") + decipher.final("utf8");
-        return decrypted;
     }
 }
