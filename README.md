@@ -1,4 +1,4 @@
-# SstGrok (strong self tunnels - grok)
+# myGrok    :computer: :telephone_receiver: :computer:
 
 ## Sumário
 
@@ -11,9 +11,9 @@
 
 Esta é uma ferramenta de tunelamento para ajudá-lo a reduzir custos de infraestrutura.
 
-O `sstGrok` é uma lib de tunelamento ponta a ponta. Ou seja, você deverá executá-la do lado do(s) servidor(es) local(ais) e também do lado do servidor hospedado (com um ip fixo ou um domínio).
+O `myGrok` é uma lib de tunelamento ponta a ponta. Ou seja, você deverá executá-la do lado do(s) servidor(es) local(ais) e também do lado do servidor hospedado (com um ip fixo ou um domínio).
 
-Um diferencial do `sstGrok` é proporcionar um tunelamento de caráter mais duradouro. Ou seja, se você tem um servidor hospedado e deseja criar nele túneis para outros servidores com IPs dinâmicos e manter esses túneis por vários dias, meses ou anos, o `sstGrok` será a ferramenta ideal. Isto pois a lib conta com um sistema de re-conexão caso a disponibilidade dos servidores locais/dinâmicos caiam por um curto período de tempo (seja devido ao provedor de internet trocar o IP, ou realmente uma queda temporária de internet).
+Um diferencial do `myGrok` é proporcionar um tunelamento de caráter mais duradouro. Ou seja, se você tem um servidor hospedado e deseja criar nele túneis para outros servidores com IPs dinâmicos e manter esses túneis por vários dias, meses ou anos, o `myGrok` será a ferramenta ideal. Isto pois a lib conta com um sistema de re-conexão caso a disponibilidade dos servidores locais/dinâmicos caiam por um curto período de tempo (seja devido ao provedor de internet trocar o IP, ou realmente uma queda temporária de internet).
 
 Para saber mais sobre os casos de uso mais indicados para a lib, confira em [Motivação](#motivação).
 
@@ -26,8 +26,8 @@ TODO: ...
 TODO: ...
 
 ```
-node lib/src/index.js tunnel-server -h server-a.localhost -p 3000 -t my_token -r 8000
-node lib/src/index.js tunnel-client -h server-a.localhost -p 4000 -t my_token -u http://localhost:3000
+node lib/src/index.js tunnel-server -h server-a.localhost -p 3000 -s 12345678912345678912345678912345
+node lib/src/index.js tunnel-client -h server-a.localhost -p 4000 -u http://localhost:3000 -s 12345678912345678912345678912345
 ```
 
 ### Múltiplos clientes
@@ -60,11 +60,11 @@ Percebeu onde quero chegar? O EC2 `t2.micro`, que é uma máquina gratuita ofere
 
 Ainda nessa linha, o meu computador pessoal é um Intel Core I5 de 32GB de RAM. Uma máquina AWS mais ou menos equivalente, o `t3.2xlarge`, de 32GB, neste momento custa USD 0,3328 a hora, que nos dá **cerca de 240 dólares por mês!!**
 
-Então, chegamos no caso de uso mais indicado para o `sstGrok`. Imagine que você tenha uma máquina local potente, com a possibilidade de deixá-la ligada 24/7. Você deseja subir para produção um projeto razoavelmente complexo, que demande um consumo considerável de RAM e processamento. Você precisa, ou deseja, subir em um domínio próprio. Neste caso, então, o `sstGrok` pode lhe ser muito útil.
+Então, chegamos no caso de uso mais indicado para o `myGrok`. Imagine que você tenha uma máquina local potente, com a possibilidade de deixá-la ligada 24/7. Você deseja subir para produção um projeto razoavelmente complexo, que demande um consumo considerável de RAM e processamento. Você precisa, ou deseja, subir em um domínio próprio. Neste caso, então, o `myGrok` pode lhe ser muito útil.
 
-Ao invés de alugar uma máquina potente como o `t3.2xlarge`, você poderá alugar um único `t2.micro` e criar vários túneis apontando para apis rodando no seu servidor local. Em outras palavras, o `sstGrok` te permite alugar **apenas** os serviços de conectividade com a web, mas reduzindo custos computacionais dado o uso de máquinas próprias.
+Ao invés de alugar uma máquina potente como o `t3.2xlarge`, você poderá alugar um único `t2.micro` e criar vários túneis apontando para apis rodando no seu servidor local. Em outras palavras, o `myGrok` te permite alugar **apenas** os serviços de conectividade com a web, mas reduzindo custos computacionais dado o uso de máquinas próprias.
 
-Ou seja, o cenário ideal para o `sstGrok` é quando se deseja alugar apenas recursos de rede, mas não recursos computacionais, ainda que o provedor cloud queira te vender tudo junto em um mesmo pacote.
+Ou seja, o cenário ideal para o `myGrok` é quando se deseja alugar apenas recursos de rede, mas não recursos computacionais, ainda que o provedor cloud queira te vender tudo junto em um mesmo pacote.
 
 ## TODOs
 

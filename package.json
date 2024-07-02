@@ -1,5 +1,5 @@
 {
-  "name": "sst-grok",
+  "name": "my-grok",
   "version": "1.0.1",
   "main": "lib/src/index.js",
   "types": "lib/src/index.d.ts",
@@ -9,7 +9,7 @@
   "files": [
     "lib"
   ],
-  "repository": "git@github.com:PauloIVM/sst-grok.git",
+  "repository": "git@github.com:PauloIVM/my-grok.git",
   "author": "Paulo Marinho <paulo.vieira.marinho@gmail.com>",
   "license": "MIT",
   "bin": {
