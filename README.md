@@ -29,7 +29,31 @@ npm i -g my-grok
 
 Caso queira incorporar a lib em um projeto, pode também instalar ao projeto sem a flag `-g`.
 
-## Exemplos
+## Tutorial/Exemplos
+
+O CLI do `myGrok` conta com um comando para ser executado na aplicação hospedada e um segundo comando para executar em uma ou mais aplicações locais (as aplicações que você deseja expor).
+
+O comando para rodar do lado hospedado é o `my-grok tunnel-server ...` e o comando do lado local é o `my-grok tunnel-client ...`.
+
+Para o comando `tunnel-server`, os seguintes parâmetros podem ser passados:
+____________
+|    |     |
+| -h | ... |
+| -p | ... |
+| -t | ... |
+| -s | ... |
+|____|_____|
+
+Para o comando `tunnel-client`, os seguintes parâmetros podem ser passados:
+____________
+| -h | ... |
+| -p | ... |
+| -u | ... |
+| -t | ... |
+| -s | ... |
+|____|_____|
+
+TODO: Explicar cada um dos parâmetros...
 
 Para um primeiro exemplo, crie um arquivo `test-server.js` com o código a seguir:
 
