@@ -32,7 +32,7 @@ Caso queira incorporar a lib em um projeto, pode também instalar ao projeto sem
 Para um primeiro exemplo, crie um arquivo `test-server.js` com o código a seguir:
 
 ```js
-import * as http from "http";
+const http = require("http");
 
 const PORT = 4000;
 const server = http.createServer((req, res) => {
@@ -57,6 +57,8 @@ Este será um server genérico, que poderíamos estar querendo expor em outra m�
 
 Abra um terminal e digite:
 
+TODO: Se n digitar o host, puxar o localhost por default.
+
 ```shell
 my-grok tunnel-server -h localhost -p 3000
 ```
@@ -64,7 +66,7 @@ my-grok tunnel-server -h localhost -p 3000
 Em outro terminal, insira:
 
 ```shell
-my-grok tunnel-client -h server-a.localhost -p 4000 -u http://localhost:3000
+my-grok tunnel-client -h localhost -p 4000 -u http://localhost:3000
 ```
 
 Agora, se tentarmos acessar em um navegador a url `http://localhost:3000`, veremos o servidor em `JS` que criamos respondendo.
@@ -72,6 +74,8 @@ Agora, se tentarmos acessar em um navegador a url `http://localhost:3000`, verem
 // TODO: Adicionar imagem?
 
 Repare que o servidor está rodando na porta 4000, mas estamos acessando na porta 3000 devido ao `myGrok` estar fazendo o tunelamento que configuramos com os dois comandos executados.
+
+É claro que, até então, estamos rodando tudo localmente e no mesmo host, o que pode não deixar tão evidente o propósito da lib. Então vamos para alguns usos mais interessantes.
 
 ```
 node lib/src/index.js tunnel-server -h server-a.localhost -p 3000 -s 12345678912345678912345678912345
