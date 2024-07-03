@@ -33,31 +33,29 @@ Caso queira incorporar a lib em um projeto, pode também instalar ao projeto sem
 
 O CLI do `myGrok` conta com um comando para ser executado na aplicação hospedada e um segundo comando para executar em uma ou mais aplicações locais (as aplicações que você deseja expor).
 
-O comando para rodar do lado hospedado é o `mygrok tunnel-server ...` e o comando do lado local é o `mygrok tunnel-client ...`.
+O comando para rodar do lado hospedado é o `mygrok tunnel-server <` e o comando do lado local é o `mygrok tunnel-client ...`.
 
 Para o comando `tunnel-server`, os seguintes parâmetros podem ser passados:
 
-```
-____________
-|    |     |
-| -h | ... |
-| -p | ... |
-| -t | ... |
-| -s | ... |
-|____|_____|
-```
+| Opção | Argumento | Descrição | Exemplo |
+|--------|--------|--------|--------|
+| `-h` | `<hosts>` | Hosts disponíveis para clientes se conectarem por um túnel. | `-h foo.org,bar.org` |
+| `-p` | `<port>` | Porta em que o `tunnel-server` receberá conexões. | `-p 4000` |
+| `-t` | `<token>` | Token para autenticação dos sockets. | `-t my_token` |
+| `-s` | `<secret-key>` | SecretKey para criptografia dos dados trafegados nos túneis. Deve ser passado uma string de exatamente 32 caracteres. | `-s T8s9G4j6M1x2D7p0W3q5B8z4L7v1N6k3` |
+| `-r` | `<reconnection-timeout>` | Tempo máximo para reconexão de um client à um host do `tunnel-server` em milissegundos. | `-r 8000` |
+
 
 Para o comando `tunnel-client`, os seguintes parâmetros podem ser passados:
 
-```
-____________
-| -h | ... |
-| -p | ... |
-| -u | ... |
-| -t | ... |
-| -s | ... |
-|____|_____|
-```
+| arg | info |
+|--------|--------|
+| -h | Cell |
+| -p | Cell |
+| -u | Cell |
+| -t | Cell | 
+| -s | Cell | 
+
 
 TODO: Explicar cada um dos parâmetros...
 
@@ -65,13 +63,10 @@ Para um primeiro exemplo, crie um arquivo `test-server.js` com o código a segui
 
 ```js
 const http = require("http");
-
 const PORT = 4000;
 const server = http.createServer((req, res) => {
-    req.on("end", () => {
-        console.log("Request complete.");
-        res.writeHead(200, { "Content-Type": "text/plain" });
-        res.end(`req.url: ${req.url}`);
+    req.on("data", () => {}).on("end", () => {
+        res.end(`hello from port ${PORT}`);
     });
 });
 server.listen(PORT, () => {
