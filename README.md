@@ -4,7 +4,7 @@
 
 - [Introdução](#introdução)
 - [Instalação](#instalação)
-- [Exemplos](#exemplos)
+- [Tutorial/Exemplos](#tutorial/exemplos)
 - [Motivação](#motivação)
 
 ## Introdução
