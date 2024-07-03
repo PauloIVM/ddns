@@ -12,3 +12,9 @@ export type ResPayload = {
     headers: http.IncomingHttpHeaders;
     body: string;
 };
+
+export type Logger = {
+    error: (msg: string) => void;
+    warn: (msg: string) => void;
+    log: (msg: string) => void;
+};

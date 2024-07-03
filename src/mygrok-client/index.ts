@@ -1,7 +1,7 @@
 import { HttpClient } from "../http-client";
 import { Crypto } from "../crypto";
 import { Socket, io } from "socket.io-client";
-import { ReqPayload } from "../types";
+import { Logger, ReqPayload } from "../types";
 
 interface MyGrokClientConfig {
     myGrokServerUrl: string;
@@ -10,11 +10,7 @@ interface MyGrokClientConfig {
     myGrokClientHostname: string;
     token?: string;
     secretKey?: string;
-    logger?: {
-        error: (msg: string) => void;
-        warn: (msg: string) => void;
-        log: (msg: string) => void;
-    };
+    logger?: Logger;
 }
 
 export class MyGrokClient {
