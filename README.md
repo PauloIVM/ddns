@@ -1,72 +1,75 @@
 # myGrok    :computer: :telephone_receiver: :computer:
 
-## Sumário
+[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/PauloIVM/mygrok/blob/master/README.md)
+[![pt-br](https://img.shields.io/badge/lang-pt--br-green.svg)](https://github.com/PauloIVM/mygrok/blob/master/README.pt-br.md)
 
-- [Introdução](#introdução)
-- [Instalação](#instalação)
-- [Tutorial/Exemplos](#tutorialexemplos)
-- [Motivação](#motivação)
+## Summary
 
-## Introdução
+- [Introduction](#introduction)
+- [Installation](#installation)
+- [Tutorial/Examples](#tutorialexamples)
+- [Motivation](#motivation)
 
-Esta é uma ferramenta de tunelamento para ajudá-lo a reduzir custos de infraestrutura.
+## Introduction
 
-Fortemente inspirado no `nGrok`, o `myGrok` também é uma ferramenta de tunelamento, contudo com o diferencial de estabelecer os **túneis de ponta a ponta**. A ideia é executá-la do lado do(s) servidor(es) local(ais) e também do lado de um servidor hospedado (com um ip fixo ou um domínio).
+This is a tunneling tool to help you reduce infrastructure costs.
 
-Os túneis do `myGrok` possuem um caráter mais duradouro. Ou seja, se você pode manter um servidor hospedado com túneis para outros servidores com IPs dinâmicos por vários dias, meses ou anos. Isto pois o `myGrok` conta com um sistema de re-conexão caso a disponibilidade dos servidores locais/dinâmicos caiam por um curto período de tempo (seja devido ao provedor de internet trocar o IP, ou realmente uma queda temporária de internet).
+Strongly inspired by `nGrok`, `myGrok` is also a tunneling tool, however with the difference of establishing **end-to-end tunnels**. The idea is to run it on the side of the local server(s) and also on the side of a hosted server (with a fixed IP or domain).
 
-O tunelamento é feito com uma criptografia simétrica, trazendo segurança contra qualquer ataque middle-man. Além de um token (também criptografado), que pode ser passado para impedir que terceiros se conectem aos seus túneis (o que seria indesejável, pois, ainda que este não conseguisse descriptografar os dados, iria bloquear a sua conexão).
+`myGrok` tunnels have a more durable nature. That is, if you can maintain a hosted server with tunnels to other servers with dynamic IPs for several days, months or years. This is because `myGrok` has a re-connection system if the availability of local/dynamic servers drops for a short period of time (either due to the internet provider changing the IP, or actually a temporary internet outage).
 
-Para saber mais sobre os casos de uso mais indicados para a lib, confira em [Motivação](#motivação).
+Tunneling is done with symmetric encryption, providing security against any middle-man attack. In addition to a token (also encrypted), which can be passed to prevent third parties from connecting to your tunnels (which would be undesirable, as even if they were unable to decrypt the data, it would block your connection).
 
-## Instalação
+To learn more about the most suitable use cases for the lib, check out [Motivation](#motivation).
 
-Para usar a lib como um CLI, basta executar:
+## Installation
+
+To use the lib as a CLI, simply run:
 
 ```shell
 npm i -g mygrok
 ```
 
-Caso queira incorporar a lib em um projeto, pode também instalar ao projeto sem a flag `-g`.
+If you want to incorporate the lib into a project, you can also install it in the project without the `-g` flag.
 
-## Tutorial/Exemplos
+## Tutorial/Examples
 
-O `myGrok` conta com um comando para ser executado na aplicação hospedada e um segundo comando para executar em uma ou mais aplicações locais (as aplicações que você deseja expor pelos túneis).
+`myGrok` has a command to be executed in the hosted application and a second command to be executed in one or more local applications (the applications that you want to expose through the tunnels).
 
-O comando para rodar do lado hospedado é o `mygrok server <...options>` e o comando do lado local é o `mygrok client <...options>`.
+The command to run on the hosted side is `mygrok server <...options>` and the command on the local side is `mygrok client <...options>`.
 
-Para o comando `mygrok server`, os seguintes parâmetros podem ser passados:
+For the `mygrok server` command, the following parameters can be passed:
 
-| Opção | Argumento | Descrição | Exemplo |
+| Option | Argument | Description | Example |
 |--------|--------|--------|--------|
-| `-h` | `<server-hosts>` | Hosts disponíveis para clientes se conectarem por um túnel. | `-h foo.org,bar.org` |
-| `-p` | `<server-port>` | Porta em que o `mygrok-server` receberá conexões. | `-p 3000` |
-| `-r` | `<reconnection-timeout>` | Tempo máximo para reconexão de um client à um host do `mygrok-server` em milissegundos. | `-r 8000` |
-| `-t` | `<token>` | Token para autenticação dos sockets. | `-t my_token` |
-| `-s` | `<secret-key>` | SecretKey para criptografia dos dados trafegados nos túneis. Deve ser passado uma string de exatamente 32 caracteres. | `-s T8s9G4j6M1x2D7p0W3q5B8z4L7v1N6k3` |
+| `-h` | `<server-hosts>` | Hosts available for clients to connect to via a tunnel. | `-h foo.org,bar.org` |
+| `-p` | `<server-port>` | Port on which `mygrok-server` will receive connections. | `-p 3000` |
+| `-r` | `<reconnection-timeout>` | Maximum time for a client to reconnect to a `mygrok-server` host in milliseconds. | `-r 8000` |
+| `-t` | `<token>` | Token for socket authentication. | `-t my_token` |
+| `-s` | `<secret-key>` | SecretKey for encryption of data transmitted through the tunnels. A string of exactly 32 characters must be passed. | `-s T8s9G4j6M1x2D7p0W3q5B8z4L7v1N6k3` |
 
-Para o comando `mygrok client`, os seguintes parâmetros podem ser passados:
+For the `mygrok client` command, the following parameters can be passed:
 
-| Opção | Argumento | Descrição | Exemplo |
+| Option | Argument | Description | Example |
 |--------|--------|--------|--------|
-| -h | `<server-host>` | Um dos hosts disponíveis passados no server para se conectar. | `-h foo.org` |
-| -u | `<server-url>` | Url de conexão do server. | `-u https://foo.org` |
-| -p | `<client-port>` | Porta que o `mygrok-client` tentará expor ao `mygrok-server`. | `-p 4000` |
-| -l | `<client-hostname>` | Hostname que o `mygrok-client` tentará expor ao `mygrok-server` | `-l 0.0.0.0` |
-| -t | `<token>` | Token para autenticação dos sockets. | `-t my_token` |
-| -s | `<secret-key>` | SecretKey para criptografia dos dados trafegados nos túneis. Deve ser passado uma string de exatamente 32 caracteres. | `-s T8s9G4j6M1x2D7p0W3q5B8z4L7v1N6k3` |
+| -h | `<server-host>` | One of the available hosts passed on the server to connect to. | `-h foo.org` |
+| -u | `<server-url>` | Server connection url. | `-u https://foo.org` |
+| -p | `<client-port>` | Port that `mygrok-client` will attempt to expose to `mygrok-server`. | `-p 4000` |
+| -l | `<client-hostname>` | Hostname that `mygrok-client` will attempt to expose to `mygrok-server` | `-l 0.0.0.0` |
+| -t | `<token>` | Token for socket authentication. | `-t my_token` |
+| -s | `<secret-key>` | SecretKey for encryption of data transmitted through the tunnels. A string of exactly 32 characters must be passed. | `-s T8s9G4j6M1x2D7p0W3q5B8z4L7v1N6k3` |
 
-Vale ressaltar que a autenticação e a criptografia são simétricas. Ou seja, você deve passar o mesmo `-t` e `-s` no `mygrok client` e no `mygrok server`.
+It is worth noting that authentication and encryption are symmetric. That is, you must pass the same `-t` and `-s` in `mygrok client` and `mygrok server`.
 
-Uma observação: não é extritamente necessário que você passe um `token`, pois, dado a criptografia, a conexão dos sokects só será estabelecida caso o `mygrok client` tenha a secret-key para criptografar devidamente o token. Então, na prática você poderia não passar um `token` e seria usado um `token` default hard-coded. Contudo, é interessante passar um token único, para adicionar mais uma camada de segurança.
+One note: it is not strictly necessary for you to pass a `token`, because, given the encryption, the sokects connection will only be established if the `mygrok client` has the secret-key to properly encrypt the token. So, in practice you could not pass a `token` and a hard-coded default `token` would be used. However, it is interesting to pass a unique token to add another layer of security.
 
-Já o `secret-key`, é muito importante que você informe uma chave única, criada por você mesmo e não compartilhada, de 32 caracteres. Isso garantirá que os dados trafegados nos túneis estejam criptografados, e, caso haja algum proxy intermediário entre o seu `mygrok client` e o `mygrok server`, ele não terá conhecimento das informações trafegadas.
+As for `secret-key`, it is very important that you enter a unique key, created by yourself and not shared, of 32 characters. This will ensure that the data transmitted through the tunnels is encrypted, and, if there is any intermediate proxy between your `mygrok client` and the `mygrok server`, it will not be aware of the information transmitted.
 
-A flag `-l` do `mygrok client` é opcional; por padrão o valor será `localhost`; mas dependendo do caso você pode querer passar outro host, como um `0.0.0.0` ou até mesmo um host de um domínio terceiro, caso queira expor uma aplicação de um domínio qualquer (por exemplo, se você passar `-p 8080 -l google.com`, você estaria tentando expor o site do google via túnel no seu `mygrok server`, o que é claro, o google não aceitará uma conexão não segura).
+The `-l` flag of `mygrok client` is optional; by default the value will be `localhost`; but depending on the case you may want to pass another host, such as `0.0.0.0`.
 
 ### Hello world
 
-Para um primeiro exemplo, crie um arquivo `test-server.js` com o código a seguir:
+For a first example, create a `test-server.js` file with the following code:
 
 ```js
 const http = require("http");
@@ -81,41 +84,41 @@ server.listen(PORT, () => {
 });
 ```
 
-Execute o script criado:
+Run the created script:
 
 ```shell
 node test-server.js
 ```
 
-Este será um server genérico, que poderíamos estar querendo expor em outra máquina através do tunelamento do `myGrok`.
+This will be a generic server, which we might want to expose on another machine via `myGrok` tunneling.
 
-Abra um terminal e digite:
+Open a terminal and type:
 
 ```shell
 mygrok server -p 3000
 ```
 
-Em outro terminal, insira:
+In another terminal, enter:
 
 ```shell
 mygrok client -p 4000 -u http://localhost:3000
 ```
 
-Agora, se fizermos um `curl` para `http://localhost:3000`, veremos o servidor em `JS` que subimos na porta 4000 respondendo.
+Now, if we do a `curl` to `http://localhost:3000`, we will see the `JS` server that we uploaded on port 4000 responding.
 
 ![Alt text](assets/image.png)
 
-Repare que o servidor está rodando na porta 4000, mas estamos acessando na porta 3000 devido ao `myGrok` estar fazendo o tunelamento que configuramos com os dois comandos executados.
+Notice that the server is running on port 4000, but we are accessing port 3000 due to `myGrok` doing the tunneling that we configured with the two commands executed.
 
-É claro que, até então, estamos rodando tudo localmente e no mesmo host, o que pode não deixar tão evidente o propósito da lib. Então vamos para alguns usos mais interessantes.
+Of course, until then, we are running everything locally and on the same host, which may not make the purpose of the lib as clear. So let's move on to some more interesting uses.
 
-### Rodando múltiplos clientes
+### Running multiple clients
 
-Vamos supor que você tenha à disposição algo como um EC2 e um AWS Route 53. Então, vamos supor que você tenha direcionado vários subdomínios para esse EC2, e deseje que cada subdomínio conecte-se a um processo local distinto.
+Let's say you have something like an EC2 and an AWS Route 53 at your disposal. So, let's say you have directed several subdomains to this EC2, and you want each subdomain to connect to a different local process.
 
-Neste caso, você pode utilizar a flag `-h` no `mygrok server` e no `mygrok client`. No server, você pode passar vários hosts, que são os hosts disponíveis para os clients se conectarem. Cada host pode permanecer conectado a um único client; e se você tentar estabeler uma conexão de um client a um host já conectado a outro client, então o handshake falhará.
+In this case, you can use the `-h` flag in `mygrok server` and `mygrok client`. On the server, you can pass multiple hosts, which are the hosts available for clients to connect to. Each host can remain connected to a single client; and if you try to establish a connection from a client to a host already connected to another client, then the handshake will fail.
 
-Para simularmos esse caso, mas ainda rodando tudo localmente, podemos alterar o `/etc/hosts`, adicionando mais hosts locais. Quando você abrir este arquivo, é provável que encontre a linha `127.0.0.1 localhost` preenchida; assim, vamos adicionar outros hosts conforme a seguir neste arquivo:
+To simulate this case, but still running everything locally, we can change `/etc/hosts`, adding more local hosts. When you open this file, you will likely find the line `127.0.0.1 localhost` filled in; So, let's add other hosts as follows in this file:
 
 ```
 127.0.0.1 localhost
@@ -124,15 +127,15 @@ Para simularmos esse caso, mas ainda rodando tudo localmente, podemos alterar o 
 127.0.0.1 server-c
 ```
 
-Adicionados estes hosts, agora rode três servidores JS, semelhante ao que fizemos no exemplo anterior, cada um em uma ports diferente. Vamos supor que você tenha inicializado um na porta 4000, outro na 4001 e outro na 4002.
+Having added these hosts, now run three JS servers, similar to what we did in the previous example, each on a different port. Let's assume you booted one on port 4000, another on 4001, and another on 4002.
 
-Agora, podemos rodar o `server` da seguinte forma:
+Now, we can run the `server` as follows:
 
 ```shell
 mygrok server -h server-a,server-b,server-c -p 3000
 ```
 
-E rodamos os túneis de cada um dos clients:
+And we run the tunnels for each of the clients:
 
 ```shell
 mygrok client -h server-a -p 4000 -u http://localhost:3000
@@ -146,50 +149,38 @@ mygrok client -h server-b -p 4001 -u http://localhost:3000
 mygrok client -h server-c -p 4002 -u http://localhost:3000
 ```
 
-E pronto. Acessando no seu navegador `http://server-a:3000`, será feito o proxy para o servidor local rodando na porta 4000. Se acessar a url com o server-b, para a 4001, e assim por diante.
+And ready. By accessing `http://server-a:3000` in your browser, the proxy will be made to the local server running on port 4000. If you access the url with server-b, to 4001, and so on.
 
-**IMPORTANTE**: Lembre-se se passar um secret-key válido para garantir a criptografia dos dados enviados nos túneis.
+**IMPORTANT**: Remember to provide a valid secret-key to ensure encryption of data sent in the tunnels.
 
-### Exemplo na AWS com EC2 e Route 53
+## Motivation
 
-TODO: Gravar um vídeo... mostrar tbm outros aspectos como a re-conexão... secret-key e etc.
+Cloud services have made hosting web services much easier; however, in many cases, the costs can be daunting, especially if your software is not yet monetized and you have no money left over.
 
-## Motivação
-
-Os serviços cloud facilitaram muito a hospedagem de serviços web; contudo, em muitos casos, os custos podem ser desanimadores, em especial se o seu software ainda não for monetizado e você não tiver dinheiro sobrando.
-
-Nestes casos, existem algumas soluções gratuitas bastante interessantes, por exemplo:
+In these cases, there are some very interesting free solutions, for example:
 - [ngrok](https://ngrok.com/)
 - [duckdns](https://www.duckdns.org/)
 
-Serviços como o `ngrok` permitem facilmente você criar um tunnel diretamente do seu computador pessoal para a web. Serviços de `ddns`, como o `duckdns`, permitem que você suba um servidor local utilizado um ip dinâmico, e, sempre que o seu ip mudar, este serviço irá perceber isso e fazer um proxy devidamente, ou informar ao cliente o novo endereço IP.
+Services like `ngrok` easily allow you to tunnel directly from your personal computer to the web. `ddns` services, such as `duckdns`, allow you to upload a local server using a dynamic IP, and, whenever your IP changes, this service will notice this and proxy it accordingly, or inform the client of the new IP adress.
 
-### Então, qual a utilidade deste projeto?
+### So, what is the use of this project?
 
-Imagine que você queira testar um MVP, e deixar um site no ar por alguns dias. Ou que você queira subir um portifólio pro ar.
+Imagine that you want to test an MVP, and leave a website up for a few days. Or you want to upload a portfolio to the air.
 
-Ainda assim, é possível usar o `ngrok`, não? Na modalidade gratuita, uma hora o seu túnel irá morrer, e a aplicação irá parar de funcionar; fora que a url fornecida costuma ser no domínio `ngrok`, gerando apenas um sub-domínio específico para a sua aplicação. Isso pode ser ruim se o seu caso for testar um MVP; por exemplo, e se o seu site depender minimamente de SEO? E se você quiser testar um projeto por algum tempo, sem gastar muito, e só depois decidir se vai investir em uma infra mais cara?
+Still, it is possible to use `ngrok`, right? In the free mode, eventually your tunnel will die, and the application will stop working; Besides, the url provided is usually in the `ngrok` domain, generating only a specific sub-domain for your application. This could be bad if your case is testing an MVP; for example, what if your website relies minimally on SEO? What if you want to test a project for a while, without spending a lot, and only then decide whether to invest in more expensive infrastructure?
 
-Certo, mas então esses serviços de `ddns` certamente funcionariam, não? A desvantagem de você não ter um domínio seu pode continuar sendo um problema. Além disso, dependendo do seu provedor de internet, você pode acabar tendo problemas se o seu provedor usar estratégias de CGNAT. Com isso quero dizer que o seu provedor pode estar usando um mesmo IP público para vários clientes (e cada cliente com um IP privado na rede do provedor), e isso dificultaria muito o servidor `ddns` fazer o proxy para o seu servidor local. Nestes casos de CGNAT, o ideal é algo baseado em tunelamento, como o `ngrok`. 
+Okay, but then these `ddns` services would certainly work, wouldn't they? The disadvantage of not having your own domain may continue to be a problem. Additionally, depending on your internet provider, you may end up having problems if your provider uses CGNAT strategies. By this I mean that your provider could be using the same public IP for several clients (and each client with a private IP on the provider's network), and this would make it very difficult for the `ddns` server to proxy to your local server. In these CGNAT cases, the ideal is something based on tunneling, like `ngrok`.
 
-Ok. Num caso onde eu não posso recorrer a nem um `ngrok` e nem a um `duckdns`, é inevitável que eu tenha que recorrer à serviços cloud ou montar minha infra on-premise. No que este projeto seria útil então?
+Ok. In a case where I cannot resort to either `ngrok` or `duckdns`, it is inevitable that I will have to resort to cloud services or set up my on-premise infrastructure. What would this project be useful for then?
 
-Neste cenário, o `myGrok` seria útil para **reduzir** os custos de cloud (repare, reduzir, e não eliminar por completo).
+In this scenario, `myGrok` would be useful to **reduce** cloud costs (repair, reduce, not eliminate completely).
 
-Imagine que você tenha um projeto ReactJS/NextJS, e cerca de duas ou três apis, mais um banco de dados. Este é o MVP que deseja subir para a nuvem. O EC2 `t2.micro`, que é uma máquina gratuita oferecida pela AWS, possui apenas 1GB de memória RAM; é possível que isso não rode nem mesmo sua aplicação ReactJS. Se você for alugar mais máquinas, no momento em que eu escrevo esse readme, as instâncias mais baratas custam cerca de 6 dólares; facilmente seu projeto pode acabar saindo bem caro para um simples MVP ou portifólio.
+Imagine you have a ReactJS/NextJS project, and about two or three apis, plus a database. This is the MVP that wants to move up to the cloud. The EC2 `t2.micro`, which is a free machine offered by AWS, has only 1GB of RAM; It's possible that this won't even run your ReactJS application. If you are going to rent more machines, at the time of writing this readme, the cheapest instances cost around 6 dollars; Your project could easily end up being very expensive for a simple MVP or portfolio.
 
-Ainda nessa linha, o meu computador pessoal é um Intel Core I5 de 32GB de RAM. Uma máquina AWS mais ou menos equivalente, o `t3.2xlarge`, de 32GB, neste momento custa USD 0,3328 a hora, que nos dá **cerca de 240 dólares por mês!!**
+Still along these lines, my personal computer is an Intel Core I5 ​​with 32GB of RAM. A more or less equivalent AWS machine, the `t3.2xlarge`, 32GB, currently costs USD 0.3328 per hour, which gives us **around 240 dollars per month!!**
 
-Então, chegamos no caso de uso mais indicado para o `myGrok`. Imagine que você tenha uma máquina local potente, com a possibilidade de deixá-la ligada 24/7. Você deseja subir para produção um projeto razoavelmente complexo, que demande um consumo considerável de RAM e processamento. Você precisa, ou deseja, subir em um domínio próprio.
+So, we arrive at the most suitable use case for `myGrok`. Imagine that you have a powerful local machine, with the possibility of leaving it on 24/7. You want to put a reasonably complex project into production, which requires considerable RAM and processing. You need, or want, to climb into a realm of your own.
 
-Ao invés de alugar uma máquina potente como o `t3.2xlarge`, você poderia alugar um único `t2.micro` e criar vários túneis apontando para apis rodando no seu servidor local. Em outras palavras, o `myGrok` te permite alugar **apenas** os serviços de rede, mas reduzindo custos computacionais dado o uso de máquinas próprias.
+Instead of renting a powerful machine like `t3.2xlarge`, you could rent a single `t2.micro` and create several tunnels pointing to apis running on your local server. In other words, `myGrok` allows you to rent **only** network services, but reducing computational costs given the use of your own machines.
 
-Ou seja, o cenário ideal para o `myGrok` é quando se deseja alugar apenas recursos de rede, mas não recursos computacionais, ainda que o provedor cloud queira te vender tudo junto em um mesmo pacote.
-
-## TODOs
-
-- [ ] Possibilitar transmitir os cada chunk de uma stream em uma mensagem distinta do socket.
-- [ ] Cria readme em inglês;
-- [ ] Criar testes automatizados;
-- [ ] Criar exemplo com um t2.micro e aws route 53 com múltiplos subdomains;
-- [ ] Gravar um vídeo com estes exemplos, e mostrando tbm a perda de conectividade, em especial usando uma máquina virtual para os servidores locais e cortando a conexão por algum tempo;
+In other words, the ideal scenario for `myGrok` is when you only want to rent network resources, but not computational resources, even if the cloud provider wants to sell you everything together in the same package.
