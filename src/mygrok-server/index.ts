@@ -3,11 +3,11 @@ import { Crypto } from "../crypto";
 import { ResPayload, ReqPayload } from "../types";
 import { Server, Socket } from "socket.io";
 
-interface TunnelServerConfig {
+interface MyGrokServerConfig {
     availableHosts: string[];
+    port: number;
     token?: string;
     secretKey?: string;
-    port: number;
     reconnectionTimeout?: number;
     logger?: {
         error: (msg: string) => void;
@@ -16,7 +16,7 @@ interface TunnelServerConfig {
     };
 }
 
-export class TunnelServer {
+export class MyGrokServer {
     private port: number;
     private reconnectionTimeout: number;
     private token: string;
@@ -24,7 +24,7 @@ export class TunnelServer {
     private hosts: { [host: string]: { socket?: Socket } };
     private server: http.Server;
     private socketServer: Server;
-    private logger: TunnelServerConfig["logger"];
+    private logger: MyGrokServerConfig["logger"];
 
     constructor({
         availableHosts,
@@ -33,7 +33,7 @@ export class TunnelServer {
         reconnectionTimeout,
         logger,
         secretKey
-    }: TunnelServerConfig) {
+    }: MyGrokServerConfig) {
         if (!port || !availableHosts) throw new Error("Port and Hosts are required");
         this.port = port;
         this.reconnectionTimeout = reconnectionTimeout || 60000;

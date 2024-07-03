@@ -3,13 +3,13 @@ import { Crypto } from "../crypto";
 import { Socket, io } from "socket.io-client";
 import { ReqPayload } from "../types";
 
-interface TunnelClientConfig {
-    tunnelServerUrl: string;
-    tunnelServerHost: string;
+interface MyGrokClientConfig {
+    myGrokServerUrl: string;
+    myGrokServerHost: string;
+    myGrokClientPort: number;
+    myGrokClientHostname: string;
     token?: string;
     secretKey?: string;
-    localPort: number;
-    localHostname: string;
     logger?: {
         error: (msg: string) => void;
         warn: (msg: string) => void;
@@ -17,51 +17,51 @@ interface TunnelClientConfig {
     };
 }
 
-export class TunnelClient {
-    private localPort: number;
-    private tunnelServerHost: string;
+export class MyGrokClient {
+    private myGrokClientPort: number;
+    private myGrokServerHost: string;
     private hostname: string;
     private socket: Socket;
     private cripto: Crypto;
-    private logger: TunnelClientConfig["logger"];
+    private logger: MyGrokClientConfig["logger"];
 
     constructor({
-        tunnelServerUrl,
-        tunnelServerHost,
+        myGrokServerUrl,
+        myGrokServerHost,
         token = "default_token",
-        localPort,
-        localHostname,
+        myGrokClientPort,
+        myGrokClientHostname,
         secretKey,
         logger
-    }: TunnelClientConfig) {
-        if (!localPort || !tunnelServerUrl || !tunnelServerHost) {
-            throw new Error("Port and TunnelServerUrl are required");
+    }: MyGrokClientConfig) {
+        if (!myGrokClientPort || !myGrokServerUrl || !myGrokServerHost) {
+            throw new Error("Port and myGrokServerUrl are required");
         }
-        this.localPort = localPort;
-        this.tunnelServerHost = tunnelServerHost;
-        this.hostname = localHostname || "localhost";
+        this.myGrokClientPort = myGrokClientPort;
+        this.myGrokServerHost = myGrokServerHost;
+        this.hostname = myGrokClientHostname || "localhost";
         this.cripto = new Crypto(secretKey);
-        this.socket = io(tunnelServerUrl, { query: { token: this.cripto.encrypt(token) }});
+        this.socket = io(myGrokServerUrl, { query: { token: this.cripto.encrypt(token) }});
         this.logger = logger || { error: console.error, warn: console.warn, log: console.log };
     }
 
     connect() {
         this.socket.on("connect", () => {
-            this.logger.log(`Connected to tunnel-server ${this.tunnelServerHost}`);
-            this.socket.emit("listen-host", this.tunnelServerHost);
+            this.logger.log(`Connected to mygrok-server ${this.myGrokServerHost}`);
+            this.socket.emit("listen-host", this.myGrokServerHost);
         });
         this.socket.on("disconnect", () => {
-            this.logger.log(`Disconnected from tunnel-server ${this.tunnelServerHost}`);
+            this.logger.log(`Disconnected from mygrok-server ${this.myGrokServerHost}`);
         });
-        this.socket.on("http-request", this.handleHttpRequestFromTunnelServer.bind(this));
+        this.socket.on("http-request", this.handleHttpRequestFromServer.bind(this));
     }
 
-    private async handleHttpRequestFromTunnelServer(reqPayload: string, callback: (d: string) => void) {
+    private async handleHttpRequestFromServer(reqPayload: string, callback: (d: string) => void) {
         try {
             const req = this.cripto.decryptOb<ReqPayload>(reqPayload);
             const res = await HttpClient.request({
                 hostname: this.hostname,
-                port: this.localPort,
+                port: this.myGrokClientPort,
                 path: req.url,
                 method: req.method,
                 headers: req.headers,

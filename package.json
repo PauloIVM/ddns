@@ -13,7 +13,7 @@
   "author": "Paulo Marinho <paulo.vieira.marinho@gmail.com>",
   "license": "MIT",
   "bin": {
-    "open-tunnel": "./lib/index.js"
+    "mygrok": "./lib/src/index.js"
   },
   "scripts": {
     "build": "npm run build:clean && npm run build:types",
