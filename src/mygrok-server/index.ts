@@ -1,9 +1,9 @@
 import * as http from "http";
 import { Crypto } from "../crypto";
-import { ResPayload, ReqPayload, Logger } from "../types";
-import { Socket } from "socket.io";
+import { Logger } from "../types";
 import { SocketServer } from "../socket-server";
 import { SocketStorer } from "../sockets-storer";
+import { Tunnel } from "../tunnel";
 
 interface MyGrokServerConfig {
     availableHosts: string[];
@@ -21,6 +21,7 @@ export class MyGrokServer {
     private server: http.Server;
     private socketServer: SocketServer;
     private socketStorer: SocketStorer;
+    private tunnel: Tunnel;
 
     constructor({
         availableHosts,
@@ -35,6 +36,7 @@ export class MyGrokServer {
         this.availableHosts = availableHosts;
         this.cripto = new Crypto(secretKey);
         this.server = http.createServer(this.handleHttp.bind(this));
+        this.tunnel = new Tunnel(this.cripto);
         this.socketStorer = new SocketStorer(logger, reconnectionTimeout || 60000);
         this.socketServer = new SocketServer(
             token,
@@ -73,40 +75,8 @@ export class MyGrokServer {
             res.end("No such HOST available");
             return;
         }
-        const body = await this.promisifyHttpReq(req);
-        const resPayload = await this.emitHttpRequest(socket, req, body);
+        const resPayload = await this.tunnel.emitHttpRequest(socket, req);
         res.writeHead(resPayload.statusCode || 200, resPayload.headers);
         res.end(resPayload.body);
-    }
-
-    private emitHttpRequest(socket: Socket, req: http.IncomingMessage, body: string): Promise<ResPayload> {
-        return new Promise((resolve, reject) => {
-            try {
-                const reqPayload = this.cripto.encryptOb<ReqPayload>({
-                    method: req.method,
-                    headers: req.headers,
-                    url: req.url,
-                    body
-                });
-                socket.emit("http-request", reqPayload, (resPayloadEncripted: string) => {
-                    const resPayload = this.cripto.decryptOb<ResPayload>(resPayloadEncripted);
-                    resolve(resPayload);
-                });
-            } catch (error) {
-                reject(error);
-            }
-        });
-    }
-
-    // TODO: Support broadcasting a stream without grouping it all here. This can cause problems in
-    //       large streams, such as media streams, etc. This may be difficult given the encryption.
-    private promisifyHttpReq(req: http.IncomingMessage): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const bodyChunks = [];
-            req
-                .on("data", (chunk) => { bodyChunks.push(chunk); })
-                .on("end", () => { resolve(Buffer.concat(bodyChunks).toString()); })
-                .on("error", (e) => reject(e));
-        });
     }
 }
