@@ -24,7 +24,7 @@ Para saber mais sobre os casos de uso mais indicados para a lib, confira em [Mot
 Para usar a lib como um CLI, basta executar:
 
 ```shell
-npm i -g my-grok
+npm i -g mygrok
 ```
 
 Caso queira incorporar a lib em um projeto, pode também instalar ao projeto sem a flag `-g`.
@@ -33,7 +33,7 @@ Caso queira incorporar a lib em um projeto, pode também instalar ao projeto sem
 
 O CLI do `myGrok` conta com um comando para ser executado na aplicação hospedada e um segundo comando para executar em uma ou mais aplicações locais (as aplicações que você deseja expor).
 
-O comando para rodar do lado hospedado é o `my-grok tunnel-server ...` e o comando do lado local é o `my-grok tunnel-client ...`.
+O comando para rodar do lado hospedado é o `mygrok tunnel-server ...` e o comando do lado local é o `mygrok tunnel-client ...`.
 
 Para o comando `tunnel-server`, os seguintes parâmetros podem ser passados:
 
@@ -92,13 +92,13 @@ Abra um terminal e digite:
 TODO: Se n digitar o host, puxar o localhost por default.
 
 ```shell
-my-grok tunnel-server -h localhost -p 3000
+mygrok tunnel-server -h localhost -p 3000
 ```
 
 Em outro terminal, insira:
 
 ```shell
-my-grok tunnel-client -h localhost -p 4000 -u http://localhost:3000
+mygrok tunnel-client -h localhost -p 4000 -u http://localhost:3000
 ```
 
 Agora, se tentarmos acessar em um navegador a url `http://localhost:3000`, veremos o servidor em `JS` que criamos respondendo.
@@ -129,21 +129,21 @@ Adicionados estes hosts, agora rode três servidores JS, semelhante ao que fizem
 Agora, podemos rodar o `tunnel-server` da seguinte forma:
 
 ```shell
-my-grok tunnel-server -h server-a,server-b,server-c -p 3000
+mygrok tunnel-server -h server-a,server-b,server-c -p 3000
 ```
 
 E rodamos os túneis de cada um dos clients:
 
 ```shell
-my-grok tunnel-client -h server-a -p 4000 -u http://localhost:3000
+mygrok tunnel-client -h server-a -p 4000 -u http://localhost:3000
 ```
 
 ```shell
-my-grok tunnel-client -h server-b -p 4001 -u http://localhost:3000
+mygrok tunnel-client -h server-b -p 4001 -u http://localhost:3000
 ```
 
 ```shell
-my-grok tunnel-client -h server-c -p 4002 -u http://localhost:3000
+mygrok tunnel-client -h server-c -p 4002 -u http://localhost:3000
 ```
 
 E pronto. Acessando no seu navegador `http://server-a:3000`, será feito o proxy para o servidor local rodando na porta 4000. Se acessar a url com o server-b, para a 4001, e assim por diante.

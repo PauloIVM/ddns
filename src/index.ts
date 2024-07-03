@@ -10,7 +10,7 @@ export { TunnelClient };
 const program = new Command();
 
 program
-    .name("my-grok")
+    .name("mygrok")
     .description("CLI to manage your own HTTP strong tunnels.")
     .version(version);
 

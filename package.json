@@ -1,5 +1,5 @@
 {
-  "name": "my-grok",
+  "name": "mygrok",
   "version": "1.0.1",
   "main": "lib/src/index.js",
   "types": "lib/src/index.d.ts",
@@ -9,7 +9,7 @@
   "files": [
     "lib"
   ],
-  "repository": "git@github.com:PauloIVM/my-grok.git",
+  "repository": "git@github.com:PauloIVM/mygrok.git",
   "author": "Paulo Marinho <paulo.vieira.marinho@gmail.com>",
   "license": "MIT",
   "bin": {
