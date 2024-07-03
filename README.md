@@ -103,7 +103,6 @@ mygrok client -p 4000 -u http://localhost:3000
 
 Agora, se fizermos um `curl` para `http://localhost:3000`, veremos o servidor em `JS` que subimos na porta 4000 respondendo.
 
-TODO: Pegar uma imagem melhor... depois deu ter publicado a lib... ou um gif...
 ![Alt text](assets/image.png)
 
 Repare que o servidor está rodando na porta 4000, mas estamos acessando na porta 3000 devido ao `myGrok` estar fazendo o tunelamento que configuramos com os dois comandos executados.
