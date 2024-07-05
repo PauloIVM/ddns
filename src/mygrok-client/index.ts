@@ -1,7 +1,6 @@
-import { HttpClient } from "../http-client";
 import { Crypto } from "../crypto";
 import { Socket, io } from "socket.io-client";
-import { Logger, ReqPayload } from "../types";
+import { Logger } from "../types";
 import { Tunnel } from "../tunnel";
 
 interface MyGrokClientConfig {
@@ -51,16 +50,9 @@ export class MyGrokClient {
         this.socket.on("disconnect", () => {
             this.logger.log(`Disconnected from mygrok-server ${this.myGrokServerHost}`);
         });
-        this.tunnel.listenHttpRequest(this.socket, async (req: ReqPayload) => {
-            const res = await HttpClient.request({
-                hostname: this.myGrokClientHostname,
-                port: this.myGrokClientPort,
-                path: req.url,
-                method: req.method,
-                headers: req.headers,
-                body: req.body
-            });
-            return res;
+        this.tunnel.listenHttpRequest(this.socket, {
+            hostname: this.myGrokClientHostname,
+            port: this.myGrokClientPort
         });
     }
 }

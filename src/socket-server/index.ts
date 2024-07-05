@@ -30,6 +30,7 @@ export class SocketServer {
             // TODO: By default, this config is 1e6, which may not be enough for some NextJS application
             //       tunneling, for example. This highlights the urgency of issuing a socket message for
             //       each chunk of the stream.
+            // TODO: Voltar para o default de antes... parametrizar para que possam mudar pelo cli.
             maxHttpBufferSize: 1e8
         });
     }

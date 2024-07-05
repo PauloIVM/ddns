@@ -75,8 +75,6 @@ export class MyGrokServer {
             res.end("No such HOST available");
             return;
         }
-        const resPayload = await this.tunnel.emitHttpRequest(socket, req);
-        res.writeHead(resPayload.statusCode || 200, resPayload.headers);
-        res.end(resPayload.body);
+        this.tunnel.emitHttpRequest(socket, req, res);
     }
 }
