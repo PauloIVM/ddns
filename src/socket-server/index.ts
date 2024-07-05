@@ -20,19 +20,14 @@ export class SocketServer {
         cripto: Crypto,
         socketStorer: SocketStorer,
         availableHosts: string[],
+        maxHttpBufferSize: number = 1e6
     ) {
         this.token = token;
         this.availableHosts = availableHosts;
         this.socketStorer = socketStorer;
         this.cripto = cripto;
         this.logger = logger;
-        this.socketServer = new Server(httpServer, {
-            // TODO: By default, this config is 1e6, which may not be enough for some NextJS application
-            //       tunneling, for example. This highlights the urgency of issuing a socket message for
-            //       each chunk of the stream.
-            // TODO: Voltar para o default de antes... parametrizar para que possam mudar pelo cli.
-            maxHttpBufferSize: 1e8
-        });
+        this.socketServer = new Server(httpServer, { maxHttpBufferSize });
     }
 
     listen() {

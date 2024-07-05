@@ -20,6 +20,7 @@ program.command("server")
     .option("-t, --token <string>", "Token to be passed here and on the mygrok-clients.")
     .option("-s, --secret-key <string>", "Secret key to encrypt data transmitted in tunnels. Must have exactly 32 characters.")
     .option("-r, --reconnection-timeout <number>", "Reconnection timeout.")
+    .option("-m, --max-http-buffer-size <number>", "Defaults = 1e6. If tunneling large files in a single strem-chunk, you may want increase this value.")
     .action((options) => {
         new MyGrokServer({
             availableHosts: options.serverHosts?.split(",") || ["localhost"],
@@ -27,6 +28,7 @@ program.command("server")
             token: options.token,
             secretKey: options.secretKey,
             reconnectionTimeout: Number(options.reconnectionTimeout),
+            maxHttpBufferSize: options.maxHttpBufferSize
         }).listen(() => console.log(`mygrok-server running on :${options.serverPort}`));
     });
 

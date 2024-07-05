@@ -12,6 +12,7 @@ interface MyGrokServerConfig {
     secretKey?: string;
     reconnectionTimeout?: number;
     logger?: Logger;
+    maxHttpBufferSize?: number
 }
 
 export class MyGrokServer {
@@ -29,7 +30,8 @@ export class MyGrokServer {
         port,
         reconnectionTimeout,
         logger = { error: console.error, warn: console.warn, log: console.log },
-        secretKey
+        secretKey,
+        maxHttpBufferSize
     }: MyGrokServerConfig) {
         if (!port || !availableHosts) throw new Error("Port and Hosts are required");
         this.port = port;
@@ -45,6 +47,7 @@ export class MyGrokServer {
             this.cripto,
             this.socketStorer,
             this.availableHosts,
+            maxHttpBufferSize
         );
     }
 

@@ -47,6 +47,7 @@ For the `mygrok server` command, the following parameters can be passed:
 | `-r` | `<reconnection-timeout>` | Maximum time for a client to reconnect to a `mygrok-server` host in milliseconds. | `-r 8000` |
 | `-t` | `<token>` | Token for socket authentication. | `-t my_token` |
 | `-s` | `<secret-key>` | SecretKey for encryption of data transmitted through the tunnels. A string of exactly 32 characters must be passed. | `-s T8s9G4j6M1x2D7p0W3q5B8z4L7v1N6k3` |
+| `-m` | `<--max-http-buffer-size>` | Defaults = 1e6. If tunneling large files in a single strem-chunk, you may want increase this value. | `-m 100000000` |
 
 For the `mygrok client` command, the following parameters can be passed:
 
