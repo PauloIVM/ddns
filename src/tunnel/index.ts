@@ -10,12 +10,14 @@ interface ClientConfig {
 }
 
 export class Tunnel {
-    private cripto: Crypto;
+    private emitterEventsMap: { [event: string]: (...args: any[]) => void } = {};
+    private listennerEventsMap: { [event: string]: (...args: any[]) => void } = {};
 
-    constructor(cripto: Crypto) { this.cripto = cripto; }
+    constructor(readonly cripto: Crypto) {}
 
-    async listenHttpRequest(socket: ClientSocket, { hostname, port }: ClientConfig) {
-        socket.on("http-request-init", async (reqPayloadEncrypted: string, ack) => {
+    listenHttpRequest(socket: ClientSocket, { hostname, port }: ClientConfig) {
+        socket.on("http-request-init", (reqPayloadEncrypted: string, ack) => {
+            console.log("socket-events length: ", Object.keys(socket["_callbacks"]).length);
             const { url, method, id, headers } = this.cripto.decryptOb<ReqPayload>(reqPayloadEncrypted);
             const clientReq = http.request({ hostname, port, path: url, method, headers }, (clientRes) => {
                 const resPayload: ResPayload = {
@@ -27,13 +29,19 @@ export class Tunnel {
                 clientRes.on("data", (chunk) => { socket.emit(`http-response-chunk-${id}`, chunk); });
                 clientRes.on("end", () => { socket.emit(`http-response-end-${id}`); });
                 clientRes.on("error", (err) => { socket.emit(`http-response-error-${id}`); });
-            })
-            socket.on(`http-request-chunk-${id}`, (chunk) => { clientReq.write(chunk); });
-            socket.on(`http-request-end-${id}`, () => {
-                clientReq.end();
-                socket.off(`http-request-end-${id}`, () => {});
-                socket.off(`http-request-chunk-${id}`, () => {});
             });
+            const cleanup = () => {
+                clientReq.end();
+                socket.off(`http-request-chunk-${id}`, this.listennerEventsMap[`http-request-chunk-${id}`]);
+                socket.off(`http-request-end-${id}`, this.listennerEventsMap[`http-request-end-${id}`]);
+                delete this.listennerEventsMap[`http-request-chunk-${id}`];
+                delete this.listennerEventsMap[`http-request-end-${id}`];
+            };
+            this.listennerEventsMap[`http-request-chunk-${id}`] = (chunk) => { clientReq.write(chunk); };
+            this.listennerEventsMap[`http-request-end-${id}`] = () => { cleanup(); };
+            socket.on(`http-request-chunk-${id}`, this.listennerEventsMap[`http-request-chunk-${id}`]);
+            socket.on(`http-request-end-${id}`, this.listennerEventsMap[`http-request-end-${id}`]);
+            console.log("socket-events length: ", Object.keys(socket["_callbacks"]).length);
             ack();
         });
     }
@@ -47,15 +55,16 @@ export class Tunnel {
             url: req.url
         });
         const cleanup = () => {
-            socket.off(`http-response-headers-${id}`, () => {});
-            socket.off(`http-response-error-${id}`, () => {});
-            socket.off(`http-response-chunk-${id}`, () => {});
-            socket.off(`http-response-end-${id}`, () => {});
+            res.end();
+            socket.off(`http-response-headers-${id}`, this.emitterEventsMap[`http-response-headers-${id}`]);
+            socket.off(`http-response-error-${id}`, this.emitterEventsMap[`http-response-error-${id}`]);
+            socket.off(`http-response-chunk-${id}`, this.emitterEventsMap[`http-response-chunk-${id}`]);
+            socket.off(`http-response-end-${id}`, this.emitterEventsMap[`http-response-end-${id}`]);
+            delete this.emitterEventsMap[`http-response-headers-${id}`];
+            delete this.emitterEventsMap[`http-response-error-${id}`];
+            delete this.emitterEventsMap[`http-response-chunk-${id}`];
+            delete this.emitterEventsMap[`http-response-end-${id}`];
         };
-        // TODO: Dar um console.log nos listenners do socket pra conferir se estão sendo limpos
-        //       corretamente.
-        // TODO: Adicionar possibilidade de criptografar os chunks?? Talvez nessa modalidade aí
-        //       sim agrupar todos os chunks antes de enviar.
         socket.emitWithAck("http-request-init", reqPayload)
             .then(() => {
                 req
@@ -72,23 +81,26 @@ export class Tunnel {
             }).catch((e) => {
                 // TODO: tratar errors...
             });
-        socket.on(`http-response-headers-${id}`, (resPayloadEncrypted: string) => {
+        this.emitterEventsMap[`http-response-headers-${id}`] = (resPayloadEncrypted: string) => {
             const resPayload = this.cripto.decryptOb<ResPayload>(resPayloadEncrypted);
             res.writeHead(resPayload.statusCode || 200, resPayload.headers);
-        });
-        socket.on(`http-response-chunk-${id}`, (chunk: Buffer) => {
+        }
+        this.emitterEventsMap[`http-response-chunk-${id}`] = (chunk: Buffer) => {
             res.write(chunk);
-        });
-        socket.on(`http-response-end-${id}`, () => {
-            res.end();
+        }
+        this.emitterEventsMap[`http-response-end-${id}`] = () => {
             cleanup();
-        });
-        socket.on(`http-response-error-${id}`, () => {
+        }
+        this.emitterEventsMap[`http-response-error-${id}`] = () => {
             // TODO: tratar errors...
             res.statusCode = 500;
-            res.end();
             cleanup();
-        });
+        }
+        socket.on(`http-response-headers-${id}`, this.emitterEventsMap[`http-response-headers-${id}`]);
+        socket.on(`http-response-chunk-${id}`, this.emitterEventsMap[`http-response-chunk-${id}`]);
+        socket.on(`http-response-end-${id}`, this.emitterEventsMap[`http-response-end-${id}`]);
+        socket.on(`http-response-error-${id}`, this.emitterEventsMap[`http-response-error-${id}`]);
+        console.log("socket-events length: ", socket.eventNames().length);
     }
 
     private createId(): string {

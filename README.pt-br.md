@@ -192,7 +192,10 @@ Ou seja, o cenário ideal para o `myGrok` é quando se deseja alugar apenas recu
 
 ## TODOs
 
-- [ ] Possibilitar transmitir os cada chunk de uma stream em uma mensagem distinta do socket.
+- [ ] Replicar cenários de errors em que os túneis ficam abertos... tratar devidamente.
+- [ ] Criar método para monitorar número de socket-listenners em aberto simultâneamente.. a princípio pode simplesmente fazer um log... mas é importante para identificar um memory leak, ou então pra monitorar a quantidade de acessos simultâneos.
+- [ ] Adicionar config para criptografar os chunks... talvez tbm pra agrupar todos os chunks...
+- [ ] Usar o climem para conferir se não há mem-leaks (https://npm.io/package/climem).
 - [ ] Criar testes automatizados;
 - [ ] Criar exemplo com um t2.micro e aws route 53 com múltiplos subdomains;
 - [ ] Gravar um vídeo com estes exemplos, e mostrando tbm a perda de conectividade, em especial usando uma máquina virtual para os servidores locais e cortando a conexão por algum tempo;
