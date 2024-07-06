@@ -3,6 +3,7 @@ import { Crypto } from "../crypto";
 import { Socket } from "socket.io";
 import { Socket as ClientSocket } from "socket.io-client";
 import { ResPayload, ReqPayload } from "../types";
+import { BaseError } from "../base-error";
 
 interface ClientConfig {
     hostname: string;
@@ -30,6 +31,7 @@ export class Tunnel {
                 clientRes.on("end", () => { socket.emit(`http-response-end-${id}`); });
                 clientRes.on("error", (err) => { socket.emit(`http-response-error-${id}`); });
             });
+            clientReq.on("error", () => { socket.emit(`http-response-error-${id}`); });
             const cleanup = () => {
                 clientReq.end();
                 socket.off(`http-request-chunk-${id}`, this.listennerEventsMap[`http-request-chunk-${id}`]);
@@ -41,7 +43,6 @@ export class Tunnel {
             this.listennerEventsMap[`http-request-end-${id}`] = () => { cleanup(); };
             socket.on(`http-request-chunk-${id}`, this.listennerEventsMap[`http-request-chunk-${id}`]);
             socket.on(`http-request-end-${id}`, this.listennerEventsMap[`http-request-end-${id}`]);
-            console.log("socket-events length: ", Object.keys(socket["_callbacks"]).length);
             ack();
         });
     }
@@ -67,6 +68,7 @@ export class Tunnel {
         };
         socket.emitWithAck("http-request-init", reqPayload)
             .then(() => {
+                // TODO: Talvez criar um tunnel-error... tentar cair em cada um dos errors...
                 req
                     .on("data", (chunk) => {
                         socket.emit(`http-request-chunk-${id}`, chunk);
@@ -76,10 +78,10 @@ export class Tunnel {
                     })
                     .on("error", (err) => {
                         socket.emit(`http-request-end-${id}`); 
-                        // TODO: tratar errors...
+                        throw new Error("TODO: criar errors personalizados...");
                     });
             }).catch((e) => {
-                // TODO: tratar errors...
+                throw new Error("TODO: criar errors personalizados...");
             });
         this.emitterEventsMap[`http-response-headers-${id}`] = (resPayloadEncrypted: string) => {
             const resPayload = this.cripto.decryptOb<ResPayload>(resPayloadEncrypted);
@@ -92,9 +94,11 @@ export class Tunnel {
             cleanup();
         }
         this.emitterEventsMap[`http-response-error-${id}`] = () => {
-            // TODO: tratar errors...
-            res.statusCode = 500;
+            // TODO: No caso de um error... alterar o status no tunnel-server...
+            // res.statusCode = 500;
+            // TODO: Receber pelo tunnel a mensagem de error...
             cleanup();
+            throw new Error("TODO: criar errors personalizados...");
         }
         socket.on(`http-response-headers-${id}`, this.emitterEventsMap[`http-response-headers-${id}`]);
         socket.on(`http-response-chunk-${id}`, this.emitterEventsMap[`http-response-chunk-${id}`]);

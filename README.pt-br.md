@@ -192,6 +192,7 @@ Ou seja, o cenário ideal para o `myGrok` é quando se deseja alugar apenas recu
 
 ## TODOs
 
+- [ ] Meu 'socket' pode ser uma interface/port, e o 'client-socket' e o 'server-socket' podem ser adaptadores. Talvez isso seja um começo para o clean-arch aqui... inclusive, talvez o adapter possa administrar o atual emitterEventsMap e listennerEventsMap, de forma que os métodos "on" e "off" só aceitassem uma function pra cada event... daí eu posso mudar os nomes, pra algo semanticamente mais correto... addEvent e removeEvent?
 - [ ] Replicar cenários de errors em que os túneis ficam abertos... tratar devidamente.
 - [ ] Criar método para monitorar número de socket-listenners em aberto simultâneamente.. a princípio pode simplesmente fazer um log... mas é importante para identificar um memory leak, ou então pra monitorar a quantidade de acessos simultâneos.
 - [ ] Adicionar config para criptografar os chunks... talvez tbm pra agrupar todos os chunks...
