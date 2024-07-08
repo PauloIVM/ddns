@@ -5,4 +5,7 @@ export interface ISocket {
     addListenner(event: string, cb: (payload: string | Buffer) => void): void;
     removeListenners(event: string): void;
     getListennersLength(): number;
+    getId(): string;
+    getToken(): string;
+    disconnect(): void;
 }

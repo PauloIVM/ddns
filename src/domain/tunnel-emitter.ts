@@ -1,13 +1,14 @@
 import * as http from "http";
-import { Crypto } from "../crypto";
-import { ISocket } from "./socket";
-import { ResPayload, ReqPayload } from "../types";
 import { Writable } from "stream";
+import { Crypto } from "./crypto";
+import { ISocket } from "./ports/socket";
+import { IReqPayloadDTO } from "./dtos/req-payload-dto";
+import { IResPayloadDTO } from "./dtos/res-payload-dto";
 
 export class TunnelEmitter extends Writable {
     private constructor(
         readonly cripto: Crypto,
-        readonly reqPayload: ReqPayload,
+        readonly reqPayload: IReqPayloadDTO,
         readonly socket: ISocket,
         readonly res: http.ServerResponse
     ) {
@@ -16,13 +17,13 @@ export class TunnelEmitter extends Writable {
 
     static async build(
         cripto: Crypto,
-        reqPayload: ReqPayload,
+        reqPayload: IReqPayloadDTO,
         socket: ISocket,
         res: http.ServerResponse
     ): Promise<TunnelEmitter> {
         const tunnelEmitter = new TunnelEmitter(cripto, reqPayload, socket, res);
         tunnelEmitter.setupResponseListenners();
-        await socket.emitWithAck("http-request-init", cripto.encryptOb<ReqPayload>(reqPayload));
+        await socket.emitWithAck("http-request-init", cripto.encryptOb<IReqPayloadDTO>(reqPayload));
         return tunnelEmitter;
     }
 
@@ -41,7 +42,7 @@ export class TunnelEmitter extends Writable {
 
     private setupResponseListenners() {
         const onResponseHeaders = (resPayloadEncrypted: string) => {
-            const resPayload = this.cripto.decryptOb<ResPayload>(resPayloadEncrypted);
+            const resPayload = this.cripto.decryptOb<IResPayloadDTO>(resPayloadEncrypted);
             this.res.writeHead(resPayload.statusCode || 200, resPayload.headers);
         };
         const onResponseError = () => {

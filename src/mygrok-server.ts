@@ -1,9 +1,11 @@
 import * as http from "http";
-import { Crypto } from "../crypto";
-import { Logger, ReqPayload } from "../types";
-import { SocketServer } from "../socket-server";
-import { SocketStorer } from "../sockets-storer";
-import { Tunnel } from "../tunnel";
+import { Crypto } from "./domain/crypto";
+import { Tunnel } from "./domain/tunnel";
+import { ILogger } from "./domain/ports/logger";
+import { IReqPayloadDTO } from "./domain/dtos/req-payload-dto";
+import { SocketsManager } from "./domain/sockets-manager";
+import { ConsoleLoggerAdapter } from "./infra/adapters/console-logger-adapter";
+import { SocketServer } from "./infra/socket-server";
 
 interface MyGrokServerConfig {
     availableHosts: string[];
@@ -11,7 +13,7 @@ interface MyGrokServerConfig {
     token?: string;
     secretKey?: string;
     reconnectionTimeout?: number;
-    logger?: Logger;
+    logger?: ILogger;
     maxHttpBufferSize?: number
 }
 
@@ -21,15 +23,14 @@ export class MyGrokServer {
     private availableHosts: string[];
     private server: http.Server;
     private socketServer: SocketServer;
-    private socketStorer: SocketStorer;
-    private tunnel: Tunnel;
+    private socketsManager: SocketsManager;
 
     constructor({
         availableHosts,
         token = "default_token",
         port,
         reconnectionTimeout,
-        logger = { error: console.error, warn: console.warn, log: console.log },
+        logger = new ConsoleLoggerAdapter(),
         secretKey,
         maxHttpBufferSize
     }: MyGrokServerConfig) {
@@ -38,14 +39,13 @@ export class MyGrokServer {
         this.availableHosts = availableHosts;
         this.cripto = new Crypto(secretKey);
         this.server = http.createServer(this.handleHttp.bind(this));
-        this.tunnel = new Tunnel(this.cripto);
-        this.socketStorer = new SocketStorer(logger, reconnectionTimeout || 60000);
+        this.socketsManager = new SocketsManager(logger, reconnectionTimeout || 60000);
         this.socketServer = new SocketServer(
             token,
             logger,
             this.server,
             this.cripto,
-            this.socketStorer,
+            this.socketsManager,
             this.availableHosts,
             maxHttpBufferSize
         );
@@ -72,20 +72,20 @@ export class MyGrokServer {
             res.end(`No such ${host} HOST configured`);
             return;
         }
-        const socket = await this.socketStorer.get(host);
+        const socket = await this.socketsManager.get(host);
         if (!socket) {
             res.writeHead(502);
             res.end("No such HOST available");
             return;
         }
         const id = `${Math.floor(Math.random()*1e8)}${Date.now()}`;
-        const payload: ReqPayload = {
+        const payload: IReqPayloadDTO = {
             id,
             method: req.method,
             headers: req.headers,
             url: req.url
         };
-        const tunnelEmitter = await this.tunnel.createEmitter(socket, payload, res);
+        const tunnelEmitter = await Tunnel.createEmitter(this.cripto, socket, payload, res);
         req.pipe(tunnelEmitter);
     }
 }

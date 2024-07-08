@@ -1,10 +1,18 @@
 import { Socket } from "socket.io-client";
-import { ISocket } from "./socket";
+import { ISocket } from "../../domain/ports/socket";
 
 export class SocketIOClientAdapter implements ISocket {
     private listennersMap: { [event: string]: (...args: any[]) => void } = {};
 
     constructor(readonly _socket: Socket) {}
+
+    getId(): string {
+        return this._socket.id;
+    }
+
+    getToken(): string {
+        return "";
+    }
 
     emit(event: string, payload: string | Buffer): boolean {
         this._socket.emit(event, payload);
@@ -47,5 +55,9 @@ export class SocketIOClientAdapter implements ISocket {
 
     getListennersLength(): number {
         return Object.keys(this._socket["_callbacks"]).length;
+    }
+
+    disconnect(): void {
+        this._socket.disconnect();
     }
 }

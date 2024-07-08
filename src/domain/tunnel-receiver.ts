@@ -1,17 +1,14 @@
 import * as http from "http";
-import { Crypto } from "../crypto";
-import { ResPayload, ReqPayload } from "../types";
-import { ISocket } from "./socket";
-
-export interface ClientConfig {
-    hostname: string;
-    port: number;
-}
+import { Crypto } from "./crypto";
+import { ISocket } from "./ports/socket";
+import { IClientConfigDTO } from "./dtos/client-configs-dto";
+import { IReqPayloadDTO } from "./dtos/req-payload-dto";
+import { IResPayloadDTO } from "./dtos/res-payload-dto";
 
 export class TunnelReceiver {
     constructor(readonly cripto: Crypto, readonly socket: ISocket) {}
 
-    listen({ hostname, port }: ClientConfig) {
+    listen({ hostname, port }: IClientConfigDTO) {
         this.socket.addListennerWithAck("http-request-init", this.handleRequestInit.bind(
             this,
             hostname,
@@ -20,7 +17,7 @@ export class TunnelReceiver {
     }
 
     private handleRequestInit(hostname: string, port: number, reqPayloadEncrypted: string) {
-        const { url, method, id, headers } = this.cripto.decryptOb<ReqPayload>(reqPayloadEncrypted);
+        const { url, method, id, headers } = this.cripto.decryptOb<IReqPayloadDTO>(reqPayloadEncrypted);
         const options = { hostname, port, path: url, method, headers };
         const clientReq = http.request(options, this.handleClientRequest.bind(this, id));
         clientReq.on("error", this.socket.emit.bind(this.socket, `http-response-error-${id}`));
@@ -29,7 +26,7 @@ export class TunnelReceiver {
     }
 
     private handleClientRequest(id: string, clientRes: http.IncomingMessage) {
-        const resPayload: ResPayload = {
+        const resPayload: IResPayloadDTO = {
             headers: clientRes.headers,
             statusCode: clientRes.statusCode
         };

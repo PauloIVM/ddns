@@ -1,7 +1,9 @@
-import { Crypto } from "../crypto";
-import { Socket, io } from "socket.io-client";
-import { Logger } from "../types";
-import { Tunnel } from "../tunnel";
+import { io } from "socket.io-client";
+import { Tunnel } from "./domain/tunnel";
+import { Crypto } from "./domain/crypto";
+import { ILogger } from "./domain/ports/logger";
+import { ISocket } from "./domain/ports/socket";
+import { SocketIOClientAdapter } from "./infra/adapters/socket-io-client-adapter";
 
 interface MyGrokClientConfig {
     myGrokServerUrl: string;
@@ -10,16 +12,16 @@ interface MyGrokClientConfig {
     myGrokClientHostname: string;
     token?: string;
     secretKey?: string;
-    logger?: Logger;
+    logger?: ILogger;
 }
 
 export class MyGrokClient {
     private myGrokClientPort: number;
     private myGrokServerHost: string;
     private myGrokClientHostname: string;
-    private socket: Socket;
+    private socket: ISocket;
     private logger: MyGrokClientConfig["logger"];
-    private tunnel: Tunnel;
+    private crypto: Crypto;
 
     constructor({
         myGrokServerUrl,
@@ -33,24 +35,26 @@ export class MyGrokClient {
         if (!myGrokClientPort || !myGrokServerUrl || !myGrokServerHost) {
             throw new Error("Port and myGrokServerUrl are required");
         }
-        const cripto = new Crypto(secretKey);
+        const crypto = new Crypto(secretKey);
         this.myGrokClientPort = myGrokClientPort;
         this.myGrokServerHost = myGrokServerHost;
         this.myGrokClientHostname = myGrokClientHostname || "localhost";
-        this.socket = io(myGrokServerUrl, { query: { token: cripto.encrypt(token) }});
+        this.socket = new SocketIOClientAdapter(
+            io(myGrokServerUrl, { query: { token: crypto.encrypt(token) }})
+        );
         this.logger = logger || { error: console.error, warn: console.warn, log: console.log };
-        this.tunnel = new Tunnel(cripto);
+        this.crypto = crypto;
     }
 
     connect() {
-        this.socket.on("connect", () => {
+        this.socket.addListenner("connect", () => {
             this.logger.log(`Connected to mygrok-server ${this.myGrokServerHost}`);
             this.socket.emit("listen-host", this.myGrokServerHost);
         });
-        this.socket.on("disconnect", () => {
+        this.socket.addListenner("disconnect", () => {
             this.logger.log(`Disconnected from mygrok-server ${this.myGrokServerHost}`);
         });
-        this.tunnel.listenHttpRequests(this.socket, {
+        Tunnel.listenHttpRequests(this.crypto, this.socket, {
             hostname: this.myGrokClientHostname,
             port: this.myGrokClientPort
         });
