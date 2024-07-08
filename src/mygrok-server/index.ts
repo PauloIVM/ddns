@@ -1,6 +1,6 @@
 import * as http from "http";
 import { Crypto } from "../crypto";
-import { Logger } from "../types";
+import { Logger, ReqPayload } from "../types";
 import { SocketServer } from "../socket-server";
 import { SocketStorer } from "../sockets-storer";
 import { Tunnel } from "../tunnel";
@@ -78,6 +78,14 @@ export class MyGrokServer {
             res.end("No such HOST available");
             return;
         }
-        this.tunnel.emitHttpRequest(socket, req, res);
+        const id = `${Math.floor(Math.random()*1e8)}${Date.now()}`;
+        const payload: ReqPayload = {
+            id,
+            method: req.method,
+            headers: req.headers,
+            url: req.url
+        };
+        const tunnelEmitter = await this.tunnel.createEmitter(socket, payload, res);
+        req.pipe(tunnelEmitter);
     }
 }

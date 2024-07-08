@@ -50,7 +50,7 @@ export class MyGrokClient {
         this.socket.on("disconnect", () => {
             this.logger.log(`Disconnected from mygrok-server ${this.myGrokServerHost}`);
         });
-        this.tunnel.listenHttpRequest(this.socket, {
+        this.tunnel.listenHttpRequests(this.socket, {
             hostname: this.myGrokClientHostname,
             port: this.myGrokClientPort
         });
