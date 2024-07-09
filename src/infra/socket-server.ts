@@ -9,7 +9,7 @@ import { SocketIOAdapter } from "./adapters/socket-io-adapter";
 
 export class SocketServer {
     private token: string;
-    private cripto: Crypto;
+    private crypto: Crypto;
     private availableHosts: string[];
     private socketServer: Server;
     private socketsManager: SocketsManager;
@@ -19,7 +19,7 @@ export class SocketServer {
         token: string,
         logger: ILogger,
         httpServer: http.Server,
-        cripto: Crypto,
+        crypto: Crypto,
         socketsManager: SocketsManager,
         availableHosts: string[],
         maxHttpBufferSize: number = 1e6
@@ -27,7 +27,7 @@ export class SocketServer {
         this.token = token;
         this.availableHosts = availableHosts;
         this.socketsManager = socketsManager;
-        this.cripto = cripto;
+        this.crypto = crypto;
         this.logger = logger;
         this.socketServer = new Server(httpServer, { maxHttpBufferSize });
     }
@@ -51,7 +51,7 @@ export class SocketServer {
     }
 
     private validateSocketToken(token: string): boolean {
-        return this.cripto.decrypt(token) === this.token;
+        return this.crypto.decrypt(token) === this.token;
     }
 
     private handleListenHost(socket: ISocket, hostBuffer: Buffer) {

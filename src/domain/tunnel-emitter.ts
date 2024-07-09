@@ -7,7 +7,7 @@ import { IResPayloadDTO } from "./dtos/res-payload-dto";
 
 export class TunnelEmitter extends Writable {
     private constructor(
-        readonly cripto: Crypto,
+        readonly crypto: Crypto,
         readonly reqPayload: IReqPayloadDTO,
         readonly socket: ISocket,
         readonly res: http.ServerResponse
@@ -16,14 +16,14 @@ export class TunnelEmitter extends Writable {
     }
 
     static async build(
-        cripto: Crypto,
+        crypto: Crypto,
         reqPayload: IReqPayloadDTO,
         socket: ISocket,
         res: http.ServerResponse
     ): Promise<TunnelEmitter> {
-        const tunnelEmitter = new TunnelEmitter(cripto, reqPayload, socket, res);
+        const tunnelEmitter = new TunnelEmitter(crypto, reqPayload, socket, res);
         tunnelEmitter.setupResponseListenners();
-        await socket.emitWithAck("http-request-init", cripto.encryptOb<IReqPayloadDTO>(reqPayload));
+        await socket.emitWithAck("http-request-init", crypto.encryptOb<IReqPayloadDTO>(reqPayload));
         return tunnelEmitter;
     }
 
@@ -44,7 +44,7 @@ export class TunnelEmitter extends Writable {
 
     private setupResponseListenners() {
         const onResponseHeaders = (resPayloadEncrypted: string) => {
-            const resPayload = this.cripto.decryptOb<IResPayloadDTO>(resPayloadEncrypted);
+            const resPayload = this.crypto.decryptOb<IResPayloadDTO>(resPayloadEncrypted);
             this.res.writeHead(resPayload.statusCode || 200, resPayload.headers);
         };
         const onResponseError = () => {

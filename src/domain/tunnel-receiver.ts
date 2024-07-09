@@ -6,7 +6,7 @@ import { IReqPayloadDTO } from "./dtos/req-payload-dto";
 import { IResPayloadDTO } from "./dtos/res-payload-dto";
 
 export class TunnelReceiver {
-    constructor(readonly cripto: Crypto, readonly socket: ISocket) {}
+    constructor(readonly crypto: Crypto, readonly socket: ISocket) {}
 
     listen({ hostname, port }: IClientConfigDTO) {
         this.socket.addListennerWithAck("http-request-init", this.handleRequestInit.bind(
@@ -17,7 +17,7 @@ export class TunnelReceiver {
     }
 
     private handleRequestInit(hostname: string, port: number, reqPayloadEncrypted: string) {
-        const { url, method, id, headers } = this.cripto.decryptOb<IReqPayloadDTO>(reqPayloadEncrypted);
+        const { url, method, id, headers } = this.crypto.decryptOb<IReqPayloadDTO>(reqPayloadEncrypted);
         const options = { hostname, port, path: url, method, headers };
         const clientReq = http.request(options, this.handleClientRequest.bind(this, id));
         clientReq.on("error", this.socket.emit.bind(this.socket, `http-response-error-${id}`));
@@ -30,7 +30,7 @@ export class TunnelReceiver {
             headers: clientRes.headers,
             statusCode: clientRes.statusCode
         };
-        const resPayloadEncrypted = this.cripto.encryptOb(resPayload);
+        const resPayloadEncrypted = this.crypto.encryptOb(resPayload);
         this.socket.emit(`http-response-headers-${id}`, resPayloadEncrypted);
         clientRes.on("data", this.socket.emit.bind(this.socket, `http-response-chunk-${id}`));
         clientRes.on("end", this.socket.emit.bind(this.socket, `http-response-end-${id}`));

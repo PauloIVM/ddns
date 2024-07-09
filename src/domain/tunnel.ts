@@ -7,16 +7,16 @@ import { IReqPayloadDTO } from "./dtos/req-payload-dto";
 import { ISocket } from "./ports/socket";
 
 export class Tunnel {
-    static listenHttpRequests(cripto: Crypto, socket: ISocket, configs: IClientConfigDTO) {
-        new TunnelReceiver(cripto, socket).listen(configs);
+    static listenHttpRequests(crypto: Crypto, socket: ISocket, configs: IClientConfigDTO) {
+        new TunnelReceiver(crypto, socket).listen(configs);
     }
 
     static async createEmitter(
-        cripto: Crypto,
+        crypto: Crypto,
         socket: ISocket,
         reqPayload: IReqPayloadDTO,
         res: http.ServerResponse
     ): Promise<TunnelEmitter> {
-        return TunnelEmitter.build(cripto, reqPayload, socket, res);
+        return TunnelEmitter.build(crypto, reqPayload, socket, res);
     }
 }

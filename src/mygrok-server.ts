@@ -19,7 +19,7 @@ interface MyGrokServerConfig {
 
 export class MyGrokServer {
     private port: number;
-    private cripto: Crypto;
+    private crypto: Crypto;
     private availableHosts: string[];
     private server: http.Server;
     private socketServer: SocketServer;
@@ -37,14 +37,14 @@ export class MyGrokServer {
         if (!port || !availableHosts) throw new Error("Port and Hosts are required");
         this.port = port;
         this.availableHosts = availableHosts;
-        this.cripto = new Crypto(secretKey);
+        this.crypto = new Crypto(secretKey);
         this.server = http.createServer(this.handleHttp.bind(this));
         this.socketsManager = new SocketsManager(logger, reconnectionTimeout || 60000);
         this.socketServer = new SocketServer(
             token,
             logger,
             this.server,
-            this.cripto,
+            this.crypto,
             this.socketsManager,
             this.availableHosts,
             maxHttpBufferSize
@@ -89,7 +89,7 @@ export class MyGrokServer {
             headers: req.headers,
             url: req.url
         };
-        const tunnelEmitter = await Tunnel.createEmitter(this.cripto, socket, payload, res);
+        const tunnelEmitter = await Tunnel.createEmitter(this.crypto, socket, payload, res);
         req.pipe(tunnelEmitter);
     }
 }
