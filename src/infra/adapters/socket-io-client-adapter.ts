@@ -54,10 +54,14 @@ export class SocketIOClientAdapter implements ISocket {
     }
 
     getListennersLength(): number {
-        return Object.keys(this._socket["_callbacks"]).length;
+        return Object.keys(this._socket["_callbacks"] || {}).length;
     }
 
     disconnect(): void {
         this._socket.disconnect();
+    }
+
+    connected() {
+        return this._socket.connected;
     }
 }

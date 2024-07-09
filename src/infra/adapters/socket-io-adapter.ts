@@ -59,4 +59,8 @@ export class SocketIOAdapter implements ISocket {
     disconnect(): void {
         this._socket.disconnect();
     }
+
+    connected() {
+        return this._socket.connected;
+    }
 }

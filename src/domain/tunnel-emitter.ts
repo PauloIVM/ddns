@@ -27,17 +27,19 @@ export class TunnelEmitter extends Writable {
         return tunnelEmitter;
     }
 
-    _write(chunk: Buffer) {
+    _write(chunk: Buffer, encoding: string, cb: () => void) {
         this.socket.emit(`http-request-chunk-${this.reqPayload.id}`, chunk);
+        cb();
     }
 
-    _final() {
+    _final(cb: () => void) {
         this.socket.emit(`http-request-end-${this.reqPayload.id}`, ""); 
+        cb();
     }
 
-    _destroy(e, callback) {
+    _destroy(e: any, cb: (e?: any) => void) {
         if (e) { this.cleanup(); return; }
-        callback();
+        cb();
     }
 
     private setupResponseListenners() {

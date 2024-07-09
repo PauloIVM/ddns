@@ -56,6 +56,10 @@ export class MyGrokServer {
         this.server.listen(this.port, cb);
     }
 
+    close(cb?: (err) => void) {
+        this.server.close(cb);
+    }
+
     private handleHttp(req: http.IncomingMessage, res: http.ServerResponse) {
         try {
             this.handleHttpRequest(req, res);

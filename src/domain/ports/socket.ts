@@ -8,4 +8,5 @@ export interface ISocket {
     getId(): string;
     getToken(): string;
     disconnect(): void;
+    connected(): boolean;
 }
