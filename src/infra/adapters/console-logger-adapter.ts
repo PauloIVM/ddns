@@ -1,4 +1,4 @@
-import { ILogger } from "../../domain/ports/logger";
+import { ILogger } from "../../domain/ports";
 
 export class ConsoleLoggerAdapter implements ILogger {
     error(msg: string): void {

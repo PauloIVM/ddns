@@ -5,6 +5,7 @@ import { MyGrokServer } from "./mygrok-server";
 import { MyGrokClient } from "./mygrok-client";
 export { MyGrokServer };
 export { MyGrokClient };
+export { ILogger } from "./domain";
 
 const program = new Command();
 

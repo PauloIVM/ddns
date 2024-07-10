@@ -1,9 +1,11 @@
 import * as http from "http";
 import { Crypto } from "./crypto";
-import { ISocket } from "./ports/socket";
-import { IClientConfigDTO } from "./dtos/client-configs-dto";
-import { IReqPayloadDTO } from "./dtos/req-payload-dto";
-import { IResPayloadDTO } from "./dtos/res-payload-dto";
+import { ISocket } from "./ports";
+import {
+    IClientConfigDTO,
+    IReqPayloadDTO,
+    IResPayloadDTO
+} from "./dtos";
 
 export class TunnelClient {
     constructor(readonly crypto: Crypto, readonly socket: ISocket, readonly encryptAll?: boolean) {}

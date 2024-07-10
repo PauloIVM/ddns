@@ -1,11 +1,6 @@
 import * as http from "http";
-import { Crypto } from "./domain/crypto";
-import { TunnelServer } from "./domain/tunnel-server";
-import { ILogger } from "./domain/ports/logger";
-import { IReqPayloadDTO } from "./domain/dtos/req-payload-dto";
-import { SocketsManager } from "./domain/sockets-manager";
-import { ConsoleLoggerAdapter } from "./infra/adapters/console-logger-adapter";
-import { SocketServer } from "./infra/socket-server";
+import { Crypto, TunnelServer, ILogger, IReqPayloadDTO, SocketsManager } from "./domain";
+import { SocketServer, ConsoleLoggerAdapter } from "./infra";
 
 interface MyGrokServerConfig {
     availableHosts: string[];

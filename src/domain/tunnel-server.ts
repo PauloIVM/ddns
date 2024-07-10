@@ -21,10 +21,10 @@ export class TunnelServer extends Duplex {
         socket: ISocket,
         encryptAll?: boolean
     ): Promise<TunnelServer> {
-        const tunnelEmitter = new TunnelServer(crypto, reqPayload, socket, !!encryptAll);
-        tunnelEmitter.setupResponseListenners();
+        const tunnel = new TunnelServer(crypto, reqPayload, socket, !!encryptAll);
+        tunnel.setupResponseListenners();
         await socket.emitWithAck("http-request-init", crypto.encryptOb<IReqPayloadDTO>(reqPayload));
-        return tunnelEmitter;
+        return tunnel;
     }
 
     static buildDestination(res: http.ServerResponse) {
