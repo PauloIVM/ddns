@@ -21,17 +21,21 @@ export class TunnelServer extends Duplex {
         return tunnelEmitter;
     }
 
-    static buildDestination(res: http.ServerResponse) {
+    static buildDestination(res: http.ServerResponse, crypto: Crypto) {
         return new Writable({
-            write(chunk: IResPayloadDTO | Buffer, encoding, callback) {
-                const resPayload = chunk as IResPayloadDTO;
-                if (typeof resPayload === "object" && resPayload.headers) {
-                    res.writeHead(resPayload.statusCode || 200, resPayload.headers)
-                } else {
-                    res.write(chunk);
+            write: (() => {
+                let isFirstChunk = true;
+                return (chunk: Buffer, encoding, callback) => {
+                    if (isFirstChunk) {
+                        const resPayload = crypto.decryptOb<IResPayloadDTO>(chunk.toString());
+                        res.writeHead(resPayload.statusCode || 200, resPayload.headers);
+                        isFirstChunk = false;
+                    } else {
+                        res.write(chunk);
+                    }
+                    callback();
                 }
-                callback();
-            },
+            })(),
             final(callback) {
                 res.end();
                 callback();
@@ -65,10 +69,7 @@ export class TunnelServer extends Duplex {
         const onResponseError = () => { this.push(null); this.cleanup(); };
         const onResponseChunk = (c: Buffer) => { this.push(c); };
         const onResponseEnd = () => { this.push(null); this.cleanup(); };
-        const onResponseHeaders = (resPayloadEncrypted: string) => {
-            const resPayload = this.crypto.decryptOb<IResPayloadDTO>(resPayloadEncrypted);
-            this.push(resPayload);
-        };
+        const onResponseHeaders = (resPayloadEncrypted: string) => { this.push(resPayloadEncrypted); };
         this.socket.addListenner(`http-response-headers-${this.reqPayload.id}`, onResponseHeaders);
         this.socket.addListenner(`http-response-chunk-${this.reqPayload.id}`, onResponseChunk);
         this.socket.addListenner(`http-response-end-${this.reqPayload.id}`, onResponseEnd);

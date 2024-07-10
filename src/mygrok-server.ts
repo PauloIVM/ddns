@@ -90,7 +90,7 @@ export class MyGrokServer {
             url: req.url
         };
         const tunnel = await TunnelServer.build(this.crypto, payload, socket);
-        const destination = TunnelServer.buildDestination(res);
+        const destination = TunnelServer.buildDestination(res, this.crypto);
         req.pipe(tunnel).pipe(destination);
     }
 }
