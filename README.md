@@ -7,7 +7,8 @@
 
 - [Introduction](#introduction)
 - [Installation](#installation)
-- [Tutorial/Examples](#tutorialexamples)
+- [Tutorial](#tutorial)
+- [Examples](#examples)
 - [Motivation](#motivation)
 
 ## Introduction
@@ -32,7 +33,7 @@ npm i -g mygrok
 
 If you want to incorporate the lib into a project, you can also install it in the project without the `-g` flag.
 
-## Tutorial/Examples
+## Tutorial
 
 `myGrok` has a command to be executed in the hosted application and a second command to be executed in one or more local applications (the applications that you want to expose through the tunnels).
 
@@ -47,7 +48,8 @@ For the `mygrok server` command, the following parameters can be passed:
 | `-r` | `<reconnection-timeout>` | Maximum time for a client to reconnect to a `mygrok-server` host in milliseconds. | `-r 8000` |
 | `-t` | `<token>` | Token for socket authentication. | `-t my_token` |
 | `-s` | `<secret-key>` | SecretKey for encryption of data transmitted through the tunnels. A string of exactly 32 characters must be passed. | `-s T8s9G4j6M1x2D7p0W3q5B8z4L7v1N6k3` |
-| `-m` | `<--max-http-buffer-size>` | Defaults = 1e6. If tunneling large files in a single strem-chunk, you may want increase this value. | `-m 100000000` |
+| `-m` | `<max-http-buffer-size>` | Defaults = 1e6. If tunneling large files in a single strem-chunk, you may want increase this value. | `-m 100000000` |
+| `-e` |  | By default, only the headers of http requests are encrypted. Use this flag to also encrypt the request and response body data. | `-e` |
 
 For the `mygrok client` command, the following parameters can be passed:
 
@@ -59,14 +61,19 @@ For the `mygrok client` command, the following parameters can be passed:
 | -l | `<client-hostname>` | Hostname that `mygrok-client` will attempt to expose to `mygrok-server` | `-l 0.0.0.0` |
 | -t | `<token>` | Token for socket authentication. | `-t my_token` |
 | -s | `<secret-key>` | SecretKey for encryption of data transmitted through the tunnels. A string of exactly 32 characters must be passed. | `-s T8s9G4j6M1x2D7p0W3q5B8z4L7v1N6k3` |
+| `-e` |  | By default, only the headers of http requests are encrypted. Use this flag to also encrypt the request and response body data. | `-e` |
 
-It is worth noting that authentication and encryption are symmetric. That is, you must pass the same `-t` and `-s` in `mygrok client` and `mygrok server`.
+Authentication and encryption are symmetric. That is, you must pass the same `-t` and `-s` in `mygrok client` and `mygrok server`. If the `-e` flag is used on the server, it must also be used on the client.
 
-One note: it is not strictly necessary for you to pass a `token`, because, given the encryption, the sokects connection will only be established if the `mygrok client` has the secret-key to properly encrypt the token. So, in practice you could not pass a `token` and a hard-coded default `token` would be used. However, it is interesting to pass a unique token to add another layer of security.
+The `-e` flag is optional, you must use it if you want the body of tunneled requests and responses to also be encrypted. By default, only the headers are encrypted, for performance reasons; If you need to guarantee greater security, it may be interesting to use this configuration.
+
+It is not strictly necessary for you to pass a `token`, because, given the encryption, the sokects connection will only be established if the `mygrok client` has the secret-key to properly encrypt the token. So, in practice you could not pass a `token` and a hard-coded default `token` would be used. However, it is interesting to pass a unique token to add another layer of security.
 
 As for `secret-key`, it is very important that you enter a unique key, created by yourself and not shared, of 32 characters. This will ensure that the data transmitted through the tunnels is encrypted, and, if there is any intermediate proxy between your `mygrok client` and the `mygrok server`, it will not be aware of the information transmitted.
 
 The `-l` flag of `mygrok client` is optional; by default the value will be `localhost`; but depending on the case you may want to pass another host, such as `0.0.0.0`.
+
+## Examples
 
 ### Hello world
 
