@@ -20,13 +20,18 @@ program.command("server")
     .option("-t, --token <string>", "Token to be passed here and on the mygrok-clients.")
     .option("-s, --secret-key <string>", "Secret key to encrypt data transmitted in tunnels. Must have exactly 32 characters.")
     .option("-r, --reconnection-timeout <number>", "Reconnection timeout.")
+    .option("-m, --max-http-buffer-size <number>", "Defaults = 1e6. If tunneling large files in a single strem-chunk, you may want increase this value.")
+    .option("-e, --encrypt-all", "By default, only the headers of http requests are encrypted. Use this flag to also encrypt the request and response body data.")
     .action((options) => {
+        console.log("encryptAll: ", options.encryptAll);
         new MyGrokServer({
             availableHosts: options.serverHosts?.split(",") || ["localhost"],
             port: Number(options.serverPort || "3000"),
             token: options.token,
             secretKey: options.secretKey,
             reconnectionTimeout: Number(options.reconnectionTimeout),
+            maxHttpBufferSize: options.maxHttpBufferSize,
+            encryptAll: options.encryptAll
         }).listen(() => console.log(`mygrok-server running on :${options.serverPort}`));
     });
 
@@ -38,7 +43,9 @@ program.command("client")
     .option("-l, --client-hostname <string>", "Hostname on which mygrok-client will expose a local server.")
     .option("-t, --token <string>", "Token to be passed here and on the mygrok-server")
     .option("-s, --secret-key <string>", "Secret key to encrypt data transmitted in tunnels. Must have exactly 32 characters.")
+    .option("-e, --encrypt-all", "By default, only the headers of http requests are encrypted. Use this flag to also encrypt the request and response body data.")
     .action((options) => {
+        console.log("encryptAll: ", options.encryptAll);
         new MyGrokClient({
             myGrokServerUrl: options.serverUrl || "http://localhost:3000",
             myGrokServerHost: options.serverHost || "localhost",
@@ -46,6 +53,7 @@ program.command("client")
             myGrokClientHostname: options.clientHostname || "localhost",
             token: options.token,
             secretKey: options.secretKey,
+            encryptAll: options.encryptAll
         }).connect();
     });
 

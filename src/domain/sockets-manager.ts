@@ -1,12 +1,12 @@
-import { Socket } from "socket.io";
-import { Logger } from "../types";
+import { ISocket } from "./ports/socket";
+import { ILogger } from "./ports/logger";
 
-export class SocketStorer {
-    private socketsMapper: { [id: string]: Socket};
-    private logger: Logger;
+export class SocketsManager {
+    private socketsMapper: { [id: string]: ISocket};
+    private logger: ILogger;
     private reconnectionTimeout: number;
 
-    constructor(logger: Logger, reconnectionTimeout: number) {
+    constructor(logger: ILogger, reconnectionTimeout: number) {
         this.logger = logger;
         this.reconnectionTimeout = reconnectionTimeout;
         this.socketsMapper = {};
@@ -17,16 +17,16 @@ export class SocketStorer {
         return this.socketsMapper[id];
     }
 
-    add(id: string, socket: Socket) {
+    add(id: string, socket: ISocket) {
         if (this.socketsMapper[id]) return false;
         this.socketsMapper[id] = socket;
         return true;
     }
 
-    remove(socket: Socket) {
+    remove(socket: ISocket) {
         let idRemoved: string;
         Object.keys(this.socketsMapper).forEach((id) => {
-            if (this.socketsMapper[id]?.id !== socket.id) return;
+            if (this.socketsMapper[id]?.getId() !== socket.getId()) return;
             this.socketsMapper[id] = null;
             idRemoved = id;
         });

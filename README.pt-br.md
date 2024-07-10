@@ -7,7 +7,8 @@
 
 - [Introdução](#introdução)
 - [Instalação](#instalação)
-- [Tutorial/Exemplos](#tutorialexemplos)
+- [Tutorial](#tutorial)
+- [Exemplos](#exemplos)
 - [Motivação](#motivação)
 
 ## Introdução
@@ -18,7 +19,7 @@ Fortemente inspirado no `nGrok`, o `myGrok` também é uma ferramenta de tunelam
 
 Os túneis do `myGrok` possuem um caráter mais duradouro. Ou seja, se você pode manter um servidor hospedado com túneis para outros servidores com IPs dinâmicos por vários dias, meses ou anos. Isto pois o `myGrok` conta com um sistema de re-conexão caso a disponibilidade dos servidores locais/dinâmicos caiam por um curto período de tempo (seja devido ao provedor de internet trocar o IP, ou realmente uma queda temporária de internet).
 
-O tunelamento é feito com uma criptografia simétrica, trazendo segurança contra qualquer ataque middle-man. Além de um token (também criptografado), que pode ser passado para impedir que terceiros se conectem aos seus túneis (o que seria indesejável, pois, ainda que este não conseguisse descriptografar os dados, iria bloquear a sua conexão).
+O tunelamento é feito com uma criptografia simétrica, trazendo segurança contra ataques middle-man. Além de um token (também criptografado), que pode ser passado para impedir que terceiros se conectem aos seus túneis (o que seria indesejável, pois, ainda que este não conseguisse descriptografar os dados, iria bloquear a sua conexão).
 
 Para saber mais sobre os casos de uso mais indicados para a lib, confira em [Motivação](#motivação).
 
@@ -32,7 +33,7 @@ npm i -g mygrok
 
 Caso queira incorporar a lib em um projeto, pode também instalar ao projeto sem a flag `-g`.
 
-## Tutorial/Exemplos
+## Tutorial
 
 O `myGrok` conta com um comando para ser executado na aplicação hospedada e um segundo comando para executar em uma ou mais aplicações locais (as aplicações que você deseja expor pelos túneis).
 
@@ -47,6 +48,8 @@ Para o comando `mygrok server`, os seguintes parâmetros podem ser passados:
 | `-r` | `<reconnection-timeout>` | Tempo máximo para reconexão de um client à um host do `mygrok-server` em milissegundos. | `-r 8000` |
 | `-t` | `<token>` | Token para autenticação dos sockets. | `-t my_token` |
 | `-s` | `<secret-key>` | SecretKey para criptografia dos dados trafegados nos túneis. Deve ser passado uma string de exatamente 32 caracteres. | `-s T8s9G4j6M1x2D7p0W3q5B8z4L7v1N6k3` |
+| `-m` | `<max-http-buffer-size>` | Default = 1e6. Se você estiver tunelando arquivos grandes em um único chunk de uma stream http, você pode precisar aumentar esse valor. | `-m 100000000` |
+| `-e` |  | Por padrão, apenas os headers das requests http são encriptados. Use esta flag para encriptografar também os dados do corpo da requisição e resposta. | `-e` |
 
 Para o comando `mygrok client`, os seguintes parâmetros podem ser passados:
 
@@ -58,14 +61,19 @@ Para o comando `mygrok client`, os seguintes parâmetros podem ser passados:
 | -l | `<client-hostname>` | Hostname que o `mygrok-client` tentará expor ao `mygrok-server` | `-l 0.0.0.0` |
 | -t | `<token>` | Token para autenticação dos sockets. | `-t my_token` |
 | -s | `<secret-key>` | SecretKey para criptografia dos dados trafegados nos túneis. Deve ser passado uma string de exatamente 32 caracteres. | `-s T8s9G4j6M1x2D7p0W3q5B8z4L7v1N6k3` |
+| `-e` |  | Por padrão, apenas os headers das requests http são encriptados. Use esta flag para encriptografar também os dados do corpo da requisição e resposta. | `-e` |
 
-Vale ressaltar que a autenticação e a criptografia são simétricas. Ou seja, você deve passar o mesmo `-t` e `-s` no `mygrok client` e no `mygrok server`.
+A autenticação e a criptografia são simétricas. Ou seja, você deve passar o mesmo `-t` e `-s` no `mygrok client` e no `mygrok server`. Caso a flag `-e` seja usada no server, ela também deverá ser utilizada no client.
 
-Uma observação: não é extritamente necessário que você passe um `token`, pois, dado a criptografia, a conexão dos sokects só será estabelecida caso o `mygrok client` tenha a secret-key para criptografar devidamente o token. Então, na prática você poderia não passar um `token` e seria usado um `token` default hard-coded. Contudo, é interessante passar um token único, para adicionar mais uma camada de segurança.
+A flag `-e` é opcional, você deve utilizá-la caso deseje que o corpo das requests e responses tuneladas também sejam criptografado. Por padrão, apenas os cabeçalhos são criptografados, por razões de performance; caso precise garantir uma maior segurança, talvez seja interessante utilizar esta configuração.
+
+Não é extritamente necessário que você passe um `token`, pois, dado a criptografia, a conexão dos sokects só será estabelecida caso o `mygrok client` tenha a secret-key para criptografar devidamente o token. Então, na prática você poderia não passar um `token` e seria usado um `token` default hard-coded. Contudo, é interessante passar um token único, para adicionar mais uma camada de segurança.
 
 Já o `secret-key`, é muito importante que você informe uma chave única, criada por você mesmo e não compartilhada, de 32 caracteres. Isso garantirá que os dados trafegados nos túneis estejam criptografados, e, caso haja algum proxy intermediário entre o seu `mygrok client` e o `mygrok server`, ele não terá conhecimento das informações trafegadas.
 
 A flag `-l` do `mygrok client` é opcional; por padrão o valor será `localhost`; mas dependendo do caso você pode querer passar outro host, como um `0.0.0.0` ou até mesmo um host de um domínio terceiro, caso queira expor uma aplicação de um domínio qualquer (por exemplo, se você passar `-p 8080 -l google.com`, você estaria tentando expor o site do google via túnel no seu `mygrok server`, o que é claro, o google não aceitará uma conexão não segura).
+
+## Exemplos
 
 ### Hello world
 
@@ -191,7 +199,7 @@ Ou seja, o cenário ideal para o `myGrok` é quando se deseja alugar apenas recu
 
 ## TODOs
 
-- [ ] Possibilitar transmitir os cada chunk de uma stream em uma mensagem distinta do socket.
-- [ ] Criar testes automatizados;
-- [ ] Criar exemplo com um t2.micro e aws route 53 com múltiplos subdomains;
-- [ ] Gravar um vídeo com estes exemplos, e mostrando tbm a perda de conectividade, em especial usando uma máquina virtual para os servidores locais e cortando a conexão por algum tempo;
+- [ ] Melhorar testes: adicionar testes unitários para domain/tunnel; adicionar teste de integração para um disconnect no meio de uma stream (precisa matar o socket, timeout?); adcicionar testes de integração para cada error possível que pode ocorrer, tomar cuidado com túneis ficando abertos; adicionar teste para múltiplas requests simultâneas garantindo que não há nenhum problema de race-conditions; adicionar teste pra conferir se realmente está recebendo o header do client.
+- [ ] Criar método para monitorar número de socket-listenners em aberto simultâneamente.. a princípio pode simplesmente fazer um log... mas é importante para identificar um memory leak, ou então pra monitorar a quantidade de acessos simultâneos.
+- [ ] Usar o climem para conferir se não há mem-leaks (https://npm.io/package/climem).
+- [ ] Gravar um vídeo com estes exemplos, e mostrando tbm a perda de conectividade, em especial usando uma máquina virtual (AWS EC2 e route 53) para os servidores locais e cortando a conexão por algum tempo;
