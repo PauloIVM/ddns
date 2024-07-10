@@ -14,7 +14,8 @@ interface MyGrokServerConfig {
     secretKey?: string;
     reconnectionTimeout?: number;
     logger?: ILogger;
-    maxHttpBufferSize?: number
+    maxHttpBufferSize?: number;
+    encryptAll?: boolean;
 }
 
 export class MyGrokServer {
@@ -24,6 +25,7 @@ export class MyGrokServer {
     private server: http.Server;
     private socketServer: SocketServer;
     private socketsManager: SocketsManager;
+    private encryptAll: boolean;
 
     constructor({
         availableHosts,
@@ -32,11 +34,13 @@ export class MyGrokServer {
         reconnectionTimeout,
         logger = new ConsoleLoggerAdapter(),
         secretKey,
-        maxHttpBufferSize
+        maxHttpBufferSize,
+        encryptAll
     }: MyGrokServerConfig) {
         if (!port || !availableHosts) throw new Error("Port and Hosts are required");
         this.port = port;
         this.availableHosts = availableHosts;
+        this.encryptAll = !!encryptAll;
         this.crypto = new Crypto(secretKey);
         this.server = http.createServer(this.handleHttp.bind(this));
         this.socketsManager = new SocketsManager(logger, reconnectionTimeout || 60000);
@@ -89,8 +93,8 @@ export class MyGrokServer {
             headers: req.headers,
             url: req.url
         };
-        const tunnel = await TunnelServer.build(this.crypto, payload, socket);
-        const destination = TunnelServer.buildDestination(res, this.crypto);
+        const tunnel = await TunnelServer.build(this.crypto, payload, socket, this.encryptAll);
+        const destination = TunnelServer.buildDestination(res);
         req.pipe(tunnel).pipe(destination);
     }
 }

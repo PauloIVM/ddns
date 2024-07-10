@@ -6,7 +6,7 @@ import { IReqPayloadDTO } from "./dtos/req-payload-dto";
 import { IResPayloadDTO } from "./dtos/res-payload-dto";
 
 export class TunnelClient {
-    constructor(readonly crypto: Crypto, readonly socket: ISocket) {}
+    constructor(readonly crypto: Crypto, readonly socket: ISocket, readonly encryptAll?: boolean) {}
 
     listen({ hostname, port }: IClientConfigDTO) {
         this.socket.addListennerWithAck("http-request-init", this.handleRequestInit.bind(
@@ -21,7 +21,10 @@ export class TunnelClient {
         const options = { hostname, port, path: url, method, headers };
         const clientReq = http.request(options, this.handleClientRequest.bind(this, id));
         clientReq.on("error", this.socket.emit.bind(this.socket, `http-response-error-${id}`));
-        this.socket.addListenner(`http-request-chunk-${id}`, (c) => clientReq.write(c));
+        this.socket.addListenner(`http-request-chunk-${id}`, (c) => {
+            const chunk = this.encryptAll ? this.crypto.decrypt(c as string) : c;
+            clientReq.write(chunk);
+        });
         this.socket.addListenner(`http-request-end-${id}`, this.cleanup.bind(this, clientReq, id));
     }
 
@@ -32,7 +35,10 @@ export class TunnelClient {
         };
         const resPayloadEncrypted = this.crypto.encryptOb(resPayload);
         this.socket.emit(`http-response-headers-${id}`, resPayloadEncrypted);
-        clientRes.on("data", this.socket.emit.bind(this.socket, `http-response-chunk-${id}`));
+        clientRes.on("data", (c: Buffer) => {
+            const chunk = this.encryptAll ? this.crypto.encrypt(c.toString()) : c;
+            this.socket.emit(`http-response-chunk-${id}`, chunk);
+        });
         clientRes.on("end", this.socket.emit.bind(this.socket, `http-response-end-${id}`));
         clientRes.on("error", this.socket.emit.bind(this.socket, `http-response-error-${id}`));
     }

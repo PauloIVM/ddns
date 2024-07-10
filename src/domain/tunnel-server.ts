@@ -10,24 +10,30 @@ export class TunnelServer extends Duplex {
         readonly crypto: Crypto,
         readonly reqPayload: IReqPayloadDTO,
         readonly socket: ISocket,
+        readonly encryptAll: boolean,
     ) {
         super();
     }
 
-    static async build(crypto: Crypto, reqPayload: IReqPayloadDTO, socket: ISocket): Promise<TunnelServer> {
-        const tunnelEmitter = new TunnelServer(crypto, reqPayload, socket);
+    static async build(
+        crypto: Crypto,
+        reqPayload: IReqPayloadDTO,
+        socket: ISocket,
+        encryptAll?: boolean
+    ): Promise<TunnelServer> {
+        const tunnelEmitter = new TunnelServer(crypto, reqPayload, socket, !!encryptAll);
         tunnelEmitter.setupResponseListenners();
         await socket.emitWithAck("http-request-init", crypto.encryptOb<IReqPayloadDTO>(reqPayload));
         return tunnelEmitter;
     }
 
-    static buildDestination(res: http.ServerResponse, crypto: Crypto) {
+    static buildDestination(res: http.ServerResponse) {
         return new Writable({
             write: (() => {
                 let isFirstChunk = true;
                 return (chunk: Buffer, encoding, callback) => {
                     if (isFirstChunk) {
-                        const resPayload = crypto.decryptOb<IResPayloadDTO>(chunk.toString());
+                        const resPayload: IResPayloadDTO = JSON.parse(chunk.toString());
                         res.writeHead(resPayload.statusCode || 200, resPayload.headers);
                         isFirstChunk = false;
                     } else {
@@ -49,7 +55,8 @@ export class TunnelServer extends Duplex {
 
     _read(size: number): void {}
 
-    _write(chunk: Buffer, encoding: string, cb: () => void) {
+    _write(c: Buffer, encoding: string, cb: () => void) {
+        const chunk = this.encryptAll ? this.crypto.encrypt(c.toString()) : c;
         this.socket.emit(`http-request-chunk-${this.reqPayload.id}`, chunk);
         cb();
     }
@@ -67,9 +74,15 @@ export class TunnelServer extends Duplex {
 
     private setupResponseListenners() {
         const onResponseError = () => { this.push(null); this.cleanup(); };
-        const onResponseChunk = (c: Buffer) => { this.push(c); };
         const onResponseEnd = () => { this.push(null); this.cleanup(); };
-        const onResponseHeaders = (resPayloadEncrypted: string) => { this.push(resPayloadEncrypted); };
+        const onResponseChunk = (c) => {
+            const chunk = this.encryptAll ? this.crypto.decrypt(c) : c;
+            this.push(chunk);
+        };
+        const onResponseHeaders = (resPayloadEncrypted: string) => {
+            const resPayload = this.crypto.decryptOb<IResPayloadDTO>(resPayloadEncrypted);
+            this.push(JSON.stringify(resPayload));
+        };
         this.socket.addListenner(`http-response-headers-${this.reqPayload.id}`, onResponseHeaders);
         this.socket.addListenner(`http-response-chunk-${this.reqPayload.id}`, onResponseChunk);
         this.socket.addListenner(`http-response-end-${this.reqPayload.id}`, onResponseEnd);

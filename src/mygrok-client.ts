@@ -14,6 +14,7 @@ interface MyGrokClientConfig {
     token?: string;
     secretKey?: string;
     logger?: ILogger;
+    encryptAll?: boolean;
 }
 
 export class MyGrokClient {
@@ -25,6 +26,7 @@ export class MyGrokClient {
     private logger: MyGrokClientConfig["logger"];
     private crypto: Crypto;
     private token: string;
+    private encryptAll: boolean;
 
     constructor({
         myGrokServerUrl,
@@ -33,12 +35,14 @@ export class MyGrokClient {
         myGrokClientPort,
         myGrokClientHostname,
         secretKey,
-        logger = new ConsoleLoggerAdapter()
+        logger = new ConsoleLoggerAdapter(),
+        encryptAll
     }: MyGrokClientConfig) {
         if (!myGrokClientPort || !myGrokServerUrl || !myGrokServerHost) {
             throw new Error("Port and myGrokServerUrl are required");
         }
         const crypto = new Crypto(secretKey);
+        this.encryptAll = !!encryptAll;
         this.myGrokServerUrl = myGrokServerUrl;
         this.myGrokClientPort = myGrokClientPort;
         this.myGrokServerHost = myGrokServerHost;
@@ -66,7 +70,7 @@ export class MyGrokClient {
         this.socket.addListenner("disconnect", () => {
             this.logger.log(`Disconnected from mygrok-server ${this.myGrokServerHost}`);
         });
-        new TunnelClient(this.crypto, this.socket).listen({
+        new TunnelClient(this.crypto, this.socket, this.encryptAll).listen({
             hostname: this.myGrokClientHostname,
             port: this.myGrokClientPort
         });
