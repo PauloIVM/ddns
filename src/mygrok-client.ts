@@ -1,5 +1,5 @@
 import { io } from "socket.io-client";
-import { Tunnel } from "./domain/tunnel";
+import { TunnelClient } from "./domain/tunnel-client";
 import { Crypto } from "./domain/crypto";
 import { ILogger } from "./domain/ports/logger";
 import { ISocket } from "./domain/ports/socket";
@@ -66,7 +66,7 @@ export class MyGrokClient {
         this.socket.addListenner("disconnect", () => {
             this.logger.log(`Disconnected from mygrok-server ${this.myGrokServerHost}`);
         });
-        Tunnel.listenHttpRequests(this.crypto, this.socket, {
+        new TunnelClient(this.crypto, this.socket).listen({
             hostname: this.myGrokClientHostname,
             port: this.myGrokClientPort
         });

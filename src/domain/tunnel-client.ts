@@ -5,7 +5,7 @@ import { IClientConfigDTO } from "./dtos/client-configs-dto";
 import { IReqPayloadDTO } from "./dtos/req-payload-dto";
 import { IResPayloadDTO } from "./dtos/res-payload-dto";
 
-export class TunnelReceiver {
+export class TunnelClient {
     constructor(readonly crypto: Crypto, readonly socket: ISocket) {}
 
     listen({ hostname, port }: IClientConfigDTO) {

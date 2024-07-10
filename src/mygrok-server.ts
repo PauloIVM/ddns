@@ -1,6 +1,6 @@
 import * as http from "http";
 import { Crypto } from "./domain/crypto";
-import { Tunnel } from "./domain/tunnel";
+import { TunnelServer } from "./domain/tunnel-server";
 import { ILogger } from "./domain/ports/logger";
 import { IReqPayloadDTO } from "./domain/dtos/req-payload-dto";
 import { SocketsManager } from "./domain/sockets-manager";
@@ -89,7 +89,8 @@ export class MyGrokServer {
             headers: req.headers,
             url: req.url
         };
-        const tunnelEmitter = await Tunnel.createEmitter(this.crypto, socket, payload, res);
-        req.pipe(tunnelEmitter);
+        const tunnel = await TunnelServer.build(this.crypto, payload, socket);
+        const destination = TunnelServer.buildDestination(res);
+        req.pipe(tunnel).pipe(destination);
     }
 }
