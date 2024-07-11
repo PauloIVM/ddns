@@ -1,5 +1,4 @@
-import { ISocket } from "./ports/socket";
-import { ILogger } from "./ports/logger";
+import { ISocket, ILogger } from "./ports";
 
 export class SocketsManager {
     private socketsMapper: { [id: string]: ISocket};

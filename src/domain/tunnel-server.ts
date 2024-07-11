@@ -1,9 +1,8 @@
 import * as http from "http";
 import { Duplex, Writable } from "stream";
+import { IReqPayloadDTO, IResPayloadDTO } from "./dtos";
+import { ISocket } from "./ports";
 import { Crypto } from "./crypto";
-import { ISocket } from "./ports/socket";
-import { IReqPayloadDTO } from "./dtos/req-payload-dto";
-import { IResPayloadDTO } from "./dtos/res-payload-dto";
 
 export class TunnelServer extends Duplex {
     private constructor(
@@ -21,10 +20,10 @@ export class TunnelServer extends Duplex {
         socket: ISocket,
         encryptAll?: boolean
     ): Promise<TunnelServer> {
-        const tunnelEmitter = new TunnelServer(crypto, reqPayload, socket, !!encryptAll);
-        tunnelEmitter.setupResponseListenners();
+        const tunnel = new TunnelServer(crypto, reqPayload, socket, !!encryptAll);
+        tunnel.setupResponseListenners();
         await socket.emitWithAck("http-request-init", crypto.encryptOb<IReqPayloadDTO>(reqPayload));
-        return tunnelEmitter;
+        return tunnel;
     }
 
     static buildDestination(res: http.ServerResponse) {

@@ -1,5 +1,5 @@
 import { Socket } from "socket.io-client";
-import { ISocket } from "../../domain/ports/socket";
+import { ISocket } from "../../domain";
 
 export class SocketIOClientAdapter implements ISocket {
     private listennersMap: { [event: string]: (...args: any[]) => void } = {};

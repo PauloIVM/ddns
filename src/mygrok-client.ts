@@ -1,10 +1,6 @@
 import { io } from "socket.io-client";
-import { TunnelClient } from "./domain/tunnel-client";
-import { Crypto } from "./domain/crypto";
-import { ILogger } from "./domain/ports/logger";
-import { ISocket } from "./domain/ports/socket";
-import { SocketIOClientAdapter } from "./infra/adapters/socket-io-client-adapter";
-import { ConsoleLoggerAdapter } from "./infra/adapters/console-logger-adapter";
+import { Crypto, TunnelClient, ILogger, ISocket } from "./domain";
+import { SocketIOClientAdapter, ConsoleLoggerAdapter } from "./infra";
 
 interface MyGrokClientConfig {
     myGrokServerUrl: string;

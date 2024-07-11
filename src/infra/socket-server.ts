@@ -1,10 +1,12 @@
 import * as http from "http";
 import { Server } from "socket.io";
-import { Crypto } from "../domain/crypto";
-import { ILogger } from "../domain/ports/logger";
-import { ISocket } from "../domain/ports/socket";
-import { SocketsManager } from "../domain/sockets-manager";
-import { SocketIOAdapter } from "./adapters/socket-io-adapter";
+import { SocketIOAdapter } from "./adapters";
+import {
+    Crypto,
+    SocketsManager,
+    ILogger,
+    ISocket
+} from "../domain";
 
 
 export class SocketServer {
