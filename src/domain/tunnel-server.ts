@@ -1,9 +1,8 @@
 import * as http from "http";
 import { Duplex, Writable } from "stream";
+import { IReqPayloadDTO, IResPayloadDTO } from "./dtos";
+import { ISocket } from "./ports";
 import { Crypto } from "./crypto";
-import { ISocket } from "./ports/socket";
-import { IReqPayloadDTO } from "./dtos/req-payload-dto";
-import { IResPayloadDTO } from "./dtos/res-payload-dto";
 
 export class TunnelServer extends Duplex {
     private constructor(

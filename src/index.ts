@@ -24,7 +24,6 @@ program.command("server")
     .option("-m, --max-http-buffer-size <number>", "Defaults = 1e6. If tunneling large files in a single strem-chunk, you may want increase this value.")
     .option("-e, --encrypt-all", "By default, only the headers of http requests are encrypted. Use this flag to also encrypt the request and response body data.")
     .action((options) => {
-        console.log("encryptAll: ", options.encryptAll);
         new MyGrokServer({
             availableHosts: options.serverHosts?.split(",") || ["localhost"],
             port: Number(options.serverPort || "3000"),
@@ -46,7 +45,6 @@ program.command("client")
     .option("-s, --secret-key <string>", "Secret key to encrypt data transmitted in tunnels. Must have exactly 32 characters.")
     .option("-e, --encrypt-all", "By default, only the headers of http requests are encrypted. Use this flag to also encrypt the request and response body data.")
     .action((options) => {
-        console.log("encryptAll: ", options.encryptAll);
         new MyGrokClient({
             myGrokServerUrl: options.serverUrl || "http://localhost:3000",
             myGrokServerHost: options.serverHost || "localhost",
